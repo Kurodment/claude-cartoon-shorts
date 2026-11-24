@@ -71,9 +71,19 @@ place or a number on a prop; a viewer hearing it once always knows where we are 
   (on screen: a prop, a `coins` / `clock` fx, a count of characters). Prefer "o zamanlar" to years unless the year is the hook.
 - Numbers as words. No intro, channel name, moral, question to the viewer or call to action.
 - Sensitive topics (drugs, violence): history/explanation only, never show use; no text anywhere in the picture.
+- (measured on 16-35 M view story shorts, `references/story-camera.md`) Grow things in threes ("Biri düştü. Sonra bir
+  diğeri. Sonra sekizi birden."); show the RESULT first, then the reason in 1-3 sentences; small exact numbers ("her on
+  iki metrede", "saat altıya kadar"), not statistics; extra text lives INSIDE the world (a sign, a jar label), never as
+  a floating title. The video ends 0.1-0.5 s after the last word.
 **Storyboard** (shown with the script, one row per sentence, so every line has its own moving picture; no static
 slides, no stock-like filler): `| # | beat | sentence | set + shot (who/what is seen) | camera move | fx + SFX |`.
 Camera move = cut / glide / push-in / punch / pan; the style stays the engine's cartoon look in every row.
+**Camera grammar (measured, see `references/story-camera.md`)**: premium story shorts have ~1 hard cut per minute; one
+camera TRAVELS from subject to subject for 3.4-5 s per take and moves ~77 % of the time (push-in 53 %, pull-back reveal
+22 %, tilt/crane 13 %, pan/arc 12 %), one move every ~2 s, each ~1.3 s long and landing ON the noun/verb it shows.
+So: plan TAKES, not shots. Several sentences in the same place = ONE shot with several cam keys (glide on each subject
+word); start a new shot (= cut) only at a place/time change or a punchline, and give those `xfade: 4-6` (a short
+dissolve) unless the cut IS the joke. Aim for 12-16 shots per minute, not 20.
 Count the words, then show the script + storyboard + the true/invented line + facts with sources once; on approval
 ("yardır", "tamam", "GO") do everything else without asking.
 
@@ -108,7 +118,8 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   the camera so every subject fits with margins at the END of the hold (it allows for the creeping push-in and the
   punch). Write `pos`/`look` by hand only for set-pieces with no person (a bench leg, a wheel, a skyline).
   Groups: 3+ people read better in two rows (back row in the gaps, `el: 12-15` lifts the back heads above the front).
-- **manual cam**: `{ f, pos, look, fov?=40, roll?, push?=0.0025, punch?, n?, dur?=24, cut?, ease?, via? }` (`ease`: smooth |
+- **manual cam**: `{ f, pos, look, fov?=40, roll?, push?=0.0025, punch?, n?, dur?=24, cut?, ease?, via? }` (`ease`: rc
+  (default: the measured premium curve, soft 0.3 s start, speed peak at 40 %, long settle) | smooth (symmetric) |
   out = fast start + soft landing for reveals/whips | back = small overshoot for arrivals; `via: [[x,y,z]...]` curves the
   glide through those points: orbit around a subject, crane over a wall, follow a road) - first key at the shot start;
   later keys glide (`dur`) or `cut`. Every hold creeps in (`push` 0.002-0.0035); `punch` 0.007-0.012 for n=20-30 f on a
@@ -137,7 +148,11 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   stubborn squint.
   Outfits: chemist professor pharmacist doctor doctor2 nurse official guard soldier thief disguise patient patient2-4
   gent lady lady2 man worker worker2-5 king queen sailor captain farmer teacher police merchant girl grandma kid
-  tourist tourist2 engineer chef waiter mechanic driver critic (or a full Outfit object; a roleplay "you" = one
+  tourist tourist2 engineer chef waiter mechanic driver critic
+  1930s town (fedora / cloche / boater hats, glasses, ties, aprons, polka dots): grocer shopper shopper2 strongman granny
+  dandy belle squire paperboy inventor preacher rancher cop nurse2 schoolmarm banker oldman mechanic2 baker
+  (own outfits may add `hat: "fedora"|"cloche"|"boater"`, `hatCol`, `hatBand`, `glasses: true`, `tie`, `apron`, `dots`)
+  (or a full Outfit object; a roleplay "you" = one
   custom Outfit reused in every shot). On a dais/throne: `p: [x, 0.6, z]`, `shadow: false`.
 - **fx** `{ k, ... }`: `cough {f,p,s}` `burst {f,p,s,col,dur}` `puff {f,p,s}` `sparkle {f,dur?,p,s}` `stars {f?,p,s}`
   `shiver {p,s}` `flame {p,s}` `smoke {p: chimney top, f1?: fade, warm?}` `chains {f,dur,p,w,h}` (over a bottle)
@@ -192,6 +207,19 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   Wide: camera (0.4, 2.0, 7.0) -> (0, 1.0, -0.8), fov 44. Stars over the table: three `rosette` cards at y 2.5, x ±0.62.
 - props `oldCar {color, yaw, path}` (1900 open car, spoked wheels, length along x; `yaw: Math.PI/2` drives toward -z;
   a driver card at `[x, 0.5, z + 0.3]` with the same `to`), `tyres {rows: n}` (a stack of n tyres).
+- **grocery** (1930s corner store): back wall z -4 full of shelves (cans / boxes / jars, x ±1.3..5.8), back door +
+  wall clock (0, 3.35, -3.96), counter x -1.9..1.9 z -2.05..-1.3 top **1.0** (register x 1.2, sweets jar x -1.2, scales
+  x -0.4), grocer behind at (0, -2.7), customers at z >= -0.6, barrels (-4.8, -1.2) (-5.3, 0.2), sacks (4.6, -1.0)
+  (5.2, 0.3), fruit crates x ±3 z 1.2, window on the left wall, teal/cream checker floor, pendant lamps.
+  Wide: `frame: {size: "full", pts: [[±2, 2.6, -3.8]]}`; behind-the-counter MS: `frame: {size: "ms", on: [grocer, customer], az: 15}`.
+- **downtown** (1930s main street along x): shop row facing +z with facades at z -8 (x -42..42, 15 shopfronts, striped
+  awnings, blade signs, water tanks; signs have NO letters), the hero shop with the red/cream awning at x -4.1..4.1
+  (door (0, -8)), sidewalk z -8..-4 at **y 0.15** (people: `p: [x, 0.15, z]`, z -7..-4.8), road z -4..10, a second
+  row facing -z at z 14 (reverse shots; keep the camera at z < 12), lamp posts every 9 m at z -4.6, hydrant (-6.5, -4.7),
+  mailbox (6.6, -4.7), street clock (11, -4.8). Wide: camera (2, 2.2, 9) -> (0, 2.2, -8), fov 44.
+- props `sedan {color, yaw, path}` (1930s car 4.4 m along x, front +x; parked at z -2.7), `meter {lift: [[f, 0], [f+30, 1]]}`
+  (parking meter on the sidewalk y 0.15 z -4.4; lift 0..1 raises the red expired flag), `shopCart {yaw, path}` (wire
+  shopping cart, handle at x -0.62 y 1.0: push it with a `path` and walk the actor behind it), `streetClock`.
 New kinds: add a builder to `engine/sets.ts` + `SET_KINDS` (only when no set fits; tell the user it costs more).
 
 ## 4. Sound (`shorts/<name>/sound.json`) - no music unless the user wants it
@@ -211,11 +239,16 @@ creak flutter applause splash tick coins whistle ratchet rain.
    building), CARD (a card over a face) with frame ranges. Fix until only intended ones remain (a car driving out of
    frame, a card falling past a face for 2 frames). Then `render.py sheet <CompId> <total> --spec <spec.ts>` picks the
    frames itself (each shot's middle + the first frame of every remaining issue).
+   It also prints a `camera:` line (takes, hard cuts, dissolves, average take length, % of frames moving > 10 %/s,
+   drifting > 2 %/s) next to the reference numbers: aim for an average take >= 3 s, moving >= 50 %, drift >= 90 %;
+   fix a low number by merging same-place shots into one take with glides, not by adding shakes.
 1. `python <skill>/scripts/render.py sheet <CompId> <total> --frames <one mid-frame per shot> --out out/<name>/sheet` -> read the ONE image.
    Check: subject framed (not cut at the edge), captions not over a face or the key prop (`captions` override),
    nothing blocking the lens, expressions readable. Fix by editing numbers in the Spec; re-run the sheet for changed shots only.
 2. `python <skill>/scripts/render.py final <CompId> shorts/<name>/audio/mix.wav out/<name>/final.mp4 --qa`
    (1440x2560, ~2-3 min). QA: no black/frozen frames; the only white frame is `flashAt`; loudness -15 LUFS.
+   Versions are never lost: an existing final.mp4 is moved to `final_v1.mp4`, `_v2`... before the new render; compare
+   versions with numbers (check / camera / QA lines), and the user picks.
 3. Cover: `python <skill>/scripts/cover.py <CompId> <frame> <name> "LINE 1|LINE 2|LINE 3" --hl 1,2` -> `out/<name>/kapak.png`
    (1080x1920). Frame: the punchiest shot with a face or the key object (hook / reveal / ending). Title: 2-3 short lines
    (<= 13 characters each) that tease the hook, e.g. "PİSA'YI|BİR SAVAŞ|KURTARDI"; the line(s) in `--hl` turn yellow.

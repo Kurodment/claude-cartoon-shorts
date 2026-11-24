@@ -89,7 +89,12 @@ export const kickAt = (spec: Spec, f: number) => {
   for (const [f0, g] of spec.kicks ?? []) { const n = Math.floor(f - f0 + 1e-6); if (n >= 0 && n < 7) a += g * (n % 2 ? -1 : 1) * (1 - n / 7) ** 1.5; }
   return a;
 };
+/** measured on premium story shorts (Version Six kit, 03_CAMERA_GRAMMAR): the move ramps up in ~0.3 s, the speed
+ *  peaks at ~40 % of the move, then settles more slowly; no linear moves, no hard stops. Speed ~ t^1.3 (1-t)^1.95. */
+const RC_TABLE = (() => { const n = 200, v: number[] = [0]; let s = 0; for (let i = 1; i <= n; i++) { const t = (i - 0.5) / n; s += t ** 1.3 * (1 - t) ** 1.95; v.push(s); } return v.map((x) => x / s); })();
+const rc = (t: number) => { const x = clamp01(t) * 200, i = Math.min(199, Math.floor(x)); return RC_TABLE[i] + (RC_TABLE[i + 1] - RC_TABLE[i]) * (x - i); };
 const EASE: Record<string, (t: number) => number> = {
+  rc, smooth: glide,
   out: (t) => 1 - (1 - t) ** 3, in: (t) => t ** 3,
   back: (t) => { const s = 1.4, x = t - 1; return x * x * ((s + 1) * x + s) + 1; },
 };
@@ -106,7 +111,7 @@ export const camAt = (spec: Spec, origin: V3, shot: ShotSpec, f: number): Cam =>
     const k = keys[i];
     if (f < k.f) break;
     if (k.cut) { c = frame(k, origin, f, shot, hold(i)); continue; }
-    const t = Math.max(0, Math.min(1, (f - k.f) / (k.dur ?? 24))), e = k.ease && EASE[k.ease] ? EASE[k.ease](t) : glide(t), b = frame(k, origin, f, shot, hold(i));
+    const t = Math.max(0, Math.min(1, (f - k.f) / (k.dur ?? 24))), e = k.ease && EASE[k.ease] ? EASE[k.ease](t) : rc(t), b = frame(k, origin, f, shot, hold(i));
     const m = mixC(c, b, e);
     if (k.via?.length && t < 1) m.pos = spline([c.pos, ...k.via.map((v) => add(origin, v)), b.pos], e);
     c = m;

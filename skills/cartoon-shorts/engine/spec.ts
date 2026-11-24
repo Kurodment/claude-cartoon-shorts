@@ -25,8 +25,9 @@ export const wordsAt = (words: Word[]) => {
  *  at: frame whose actor positions are framed (default: when this key's glide lands) */
 export type FrameSpec = { on?: number[]; pts?: V3[]; size?: "wide" | "full" | "ms" | "mcu" | "cu"; az?: number; el?: number; side?: -1 | 0 | 1; at?: number };
 export type CamKey = { f: number; pos?: V3; look?: V3; frame?: FrameSpec; fov?: number; roll?: number; push?: number; punch?: number; n?: number; dur?: number; cut?: boolean;
-  /** glide easing: smooth (default), out (fast start, soft landing: reveals, whips), back (small overshoot: arrivals), in */
-  ease?: "smooth" | "out" | "back" | "in";
+  /** glide easing: rc (default: measured premium-short curve, speed peak at 40 %, longer settle), smooth (symmetric),
+   *  out (fast start, soft landing: reveals, whips), back (small overshoot: arrivals), in */
+  ease?: "rc" | "smooth" | "out" | "back" | "in";
   /** via-points for a curved glide (Catmull-Rom through them), set-relative */
   via?: V3[] };
 /** expression / wave / reach timelines: a value, or {frame: value} switching LEAD before each frame */
@@ -53,7 +54,7 @@ export type ActorSpec = {
 export type FxSpec = { k: string; f?: number; f0?: number; f1?: number; dur?: number; p: V3; s?: number; w?: number; h?: number;
   col?: string; flat?: boolean; rot?: number; until?: number; path?: [number, number, number, number, number?][]; [key: string]: unknown };
 /** 3D props: bottle / flask / pillbox / bottleShelf; path = [frame, x, y, z, rotZ?] keys (smooth) */
-export type PropSpec = { k: "bottle" | "flask" | "pillbox" | "bottleShelf" | "crate" | "books" | "coins" | "building" | "logs" | "pipe" | "car" | "slab" | "oldCar" | "tyres"; p: V3; d?: number; seed?: number; jacks?: boolean; steps?: boolean;
+export type PropSpec = { k: "bottle" | "flask" | "pillbox" | "bottleShelf" | "crate" | "books" | "coins" | "building" | "logs" | "pipe" | "car" | "slab" | "oldCar" | "tyres" | "meter" | "shopCart" | "sedan" | "streetClock"; p: V3; d?: number; seed?: number; jacks?: boolean; steps?: boolean;
   /** building / car: [frame, metres] keys, eased between keys (body rises, screws and steps stretch) */
   lift?: [number, number][]; color?: string; h?: number; r?: number;
   liquidTo?: { color: string; f: number; dur: number }; path?: [number, number, number, number, number?][]; spin?: number; len?: number; rows?: number[]; yaw?: number };

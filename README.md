@@ -33,8 +33,8 @@ python <skill>/scripts/setup.py install
 | Another narrator | `revoice.py` | same picture, new voice (~15 s + render) |
 | Long-form 16:9 (3-15 min) | `longform/` (ReachMora engine) | 1080p MP4 with graphics shots |
 
-Libraries: 13 sets (lab, shop, ward, street + factory, brain castle, capitol, bathroom, office, kitchen, harbour +
-steamship, palace, meadow, 1850s mud town), liftable buildings on jacks, 38 outfits, 14 expressions, 24 effect kinds, 7 prop kinds, 24 sound cues, 8 room tones. `example/eroin/` is a complete 21-shot short.
+Libraries: 15 sets (lab, shop, ward, street + factory, brain castle, capitol, bathroom, office, kitchen, harbour +
+steamship, palace, meadow, 1850s mud town, 1930s grocery, 1930s downtown), liftable buildings on jacks, 57 outfits, 14 expressions, 24 effect kinds, 7 prop kinds, 24 sound cues, 8 room tones. `example/eroin/` is a complete 21-shot short.
 
 ## Requirements
 
@@ -46,6 +46,10 @@ Built on [mromidev/claude-animated-shorts](https://github.com/mromidev/claude-an
 (ink pass, lens blur, grade, two-tone shading, Pen character drawing, sound DSP) comes from there; this repo turns it
 into a reusable Spec-driven engine with set / outfit / effect / sound libraries, Turkish voice tools and re-voicing.
 3D models: Kenney (CC0).
+
+The 1930s town kit (grocery + downtown sets, sedan / parking meter / shopping cart / street clock, the 19 town
+characters, fedora / cloche / boater hats) and the measured story + camera rules (`references/story-camera.md`, the
+`rc` camera ease, the camera-grammar check) are ported from the free **Version Six – animated-shorts-kit (Ep1)**.
 
 Arm poses, extra faces, idle life and camera easing/spline ideas come from the publicly shared **cartoon-short-kit**
 (itself built on mromidev/claude-animated-shorts). The long-form 16:9 mode in `skills/cartoon-shorts/longform/` is

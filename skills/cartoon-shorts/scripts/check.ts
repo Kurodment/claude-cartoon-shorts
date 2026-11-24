@@ -5,6 +5,8 @@
 //   HIDDEN   a nearer actor covers another actor's face
 //   INSIDE   an actor stands inside a prop or set furniture (desk, table, bench, counter, car, building)
 //   CARD     a static card (guide, paper, tyre, dish...) covers an actor's face
+// and a CAMERA GRAMMAR line measured like the reference premium shorts (Version Six kit, 03_CAMERA_GRAMMAR): average
+// take length between edits, hard cuts vs dissolves, % of frames the camera moves > 10 %/s and drifts > 2 %/s.
 // Run from the Remotion project root (render.py check does it):  npx tsx scripts/shorts-check.ts src/shorts/<name>/spec.ts
 import { pathToFileURL } from "node:url";
 import path from "node:path";
@@ -24,6 +26,9 @@ const SOLIDS: Record<string, Box[]> = {
   shop: [rect("counter", -3.2, -0.45, 3.2, 0.45, 1.05)],
   lab: [rect("table", -1.75, -0.8, 1.75, 0.8, 0.92), rect("bench", -6, -4, 6, -3.5, 0.95)],
   kitchen: [rect("counter", -6, -4, 6, -3.35, 0.92), disc("table", 0, 0, 0.9)],
+  grocery: [rect("counter", -1.9, -2.05, 1.9, -1.3, 1.0), rect("shelves", -5.9, -4, 5.9, -3.42, 2.9), disc("barrel", -4.8, -1.2, 0.38), disc("barrel", -5.3, 0.2, 0.38),
+    rect("crate", -3.45, 0.9, -2.55, 1.5, 0.45), rect("crate", 2.55, 0.9, 3.45, 1.5, 0.45)],
+  downtown: [rect("shops", -80, -20, 80, -8, 5), rect("shops", -80, 14, 80, 24, 5)],
 };
 const STATIC_CARDS = new Set(["tablets", "paper", "tophat", "moustache", "sack", "stamp", "guide", "tyre", "rosette", "dish"]);
 
@@ -78,8 +83,8 @@ const main = async () => {
     for (const pr of shot.props ?? []) {
       let [x, y, z] = pr.p; if (pr.path) { const [q] = D.pathAt(pr.path, f); [x, y, z] = q; }
       const yaw = pr.yaw ?? 0, swap = Math.abs(Math.sin(yaw)) > 0.5;
-      const hx = { building: (pr.len ?? 8) / 2, oldCar: 1.25, car: 1.9, crate: (pr.h ?? 1) / 2, tyres: 0.42, pipe: (pr.len ?? 8) / 2, slab: (pr.len ?? 10) / 2 }[pr.k];
-      const hz = { building: (pr.d ?? 7) / 2, oldCar: 0.7, car: 0.82, crate: (pr.h ?? 1) / 2, tyres: 0.42, pipe: pr.r ?? 0.35, slab: (pr.d ?? 3) / 2 }[pr.k];
+      const hx = { sedan: 2.15, shopCart: 0.45, meter: 0.1, streetClock: 0.25, building: (pr.len ?? 8) / 2, oldCar: 1.25, car: 1.9, crate: (pr.h ?? 1) / 2, tyres: 0.42, pipe: (pr.len ?? 8) / 2, slab: (pr.len ?? 10) / 2 }[pr.k];
+      const hz = { sedan: 0.85, shopCart: 0.3, meter: 0.1, streetClock: 0.25, building: (pr.d ?? 7) / 2, oldCar: 0.7, car: 0.82, crate: (pr.h ?? 1) / 2, tyres: 0.42, pipe: pr.r ?? 0.35, slab: (pr.d ?? 3) / 2 }[pr.k];
       if (hx === undefined || hz === undefined) continue;
       const [ax, az] = swap ? [hz, hx] : [hx, hz];
       solids.push(rect(pr.k, x - ax, z - az, x + ax, z + az, pr.k === "slab" ? y : 1));
@@ -102,6 +107,33 @@ const main = async () => {
         if (Math.min(c0.x, c1.x) < fx1 && Math.max(c0.x, c1.x) > fx0 && Math.min(c0.y, c1.y) < a.face.y && Math.max(c0.y, c1.y) > a.fy0) note(si, f, `card${a.i}${x.key}`, `CARD    a ${x.key} card covers actor ${a.i} (${a.who})'s face`);
       }
     }
+  }
+  // ---- camera grammar (every frame, camera only) ----
+  {
+    const sp = spec as unknown as { xfade?: Record<number, number>; shots: { a: number; cam: { f: number; cut?: boolean }[] }[] };
+    const FPS = 30, Ln = 6;
+    let hard = 0, soft = 0;
+    sp.shots.forEach((sh, i) => { if (i) (sp.xfade?.[i + 1] ? soft++ : hard++); hard += sh.cam.filter((k, j) => j && k.cut).length; });
+    const cutF = new Set<number>();
+    sp.shots.forEach((sh) => { cutF.add(sh.a); for (const k of sh.cam) if (k.cut) cutF.add(k.f); });
+    const c0 = new THREE.PerspectiveCamera(40, 1080 / 1920, 0.1, 2000), c1 = c0.clone();
+    const put = (cm: typeof c0, f: number) => { const sh = spec.shots[D.shotIndexAt(spec, f)], c = D.camAt(spec, O, sh, f); cm.fov = c.fov; cm.position.set(...c.pos); cm.up.set(0, 1, 0); cm.lookAt(...c.look); cm.updateMatrixWorld(); cm.updateProjectionMatrix(); return c; };
+    const sp5: number[] = [];
+    for (let f = 1; f < spec.total; f++) {
+      if (cutF.has(f)) { sp5.push(NaN); continue; }
+      put(c0, f - 1); put(c1, f);
+      const d0 = new THREE.Vector3(); c0.getWorldDirection(d0);
+      const q = c0.position.clone().addScaledVector(d0, Ln).project(c1);
+      const zoom = Math.log(Math.tan((c0.fov * Math.PI) / 360) / Math.tan((c1.fov * Math.PI) / 360));
+      const d1 = new THREE.Vector3(); c1.getWorldDirection(d1);
+      const dolly = Math.log(Ln / Math.max(0.1, Ln - c1.position.clone().sub(c0.position).dot(d1)));
+      sp5.push((Math.hypot(q.x / 2, q.y / 2 * (1920 / 1080)) + Math.abs(zoom + dolly) * 0.89) * 100 * FPS);
+    }
+    const med = sp5.map((_, i) => { const w = sp5.slice(Math.max(0, i - 2), i + 3).filter((x) => !isNaN(x)).sort((a, b) => a - b); return w.length ? w[w.length >> 1] : NaN; }).filter((x) => !isNaN(x));
+    const pct = (t: number) => Math.round((100 * med.filter((x) => x > t).length) / Math.max(1, med.length));
+    const asl = spec.total / FPS / (hard + soft + 1);
+    console.log(`camera: takes ${hard + soft + 1}, hard cuts ${hard}, dissolves ${soft}, avg take ${asl.toFixed(1)} s, moving>10%/s ${pct(10)} %, drift>2%/s ${pct(2)} %, fast>60%/s ${pct(60)} %` +
+      `  (reference: avg take 3.4-5 s, ~1 hard cut, moving 77 %, drift 97 %, fast ~30 %)`);
   }
   const list = [...issues.values()].filter((e) => e.n >= 2).sort((a, b) => a.shot - b.shot || a.f0 - b.f0);
   console.log("shots: " + spec.shots.map((x) => x.a).join(",") + " total " + spec.total);

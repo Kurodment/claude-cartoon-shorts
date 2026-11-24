@@ -12,6 +12,7 @@ import { NOINK } from "./ink";
 import { Pool, Actor, Fx } from "./cards";
 import { Spec, V3, FPS, PropSpec } from "./spec";
 import { camAt, stage, shotEnd, smooth, pathAt } from "./direct";
+import { meterProp, shopCartProp, sedanProp, streetClockProp } from "./town30s";
 import { SET_KINDS, flask, bottle, aspirinBox, shelfRowExport, crateProp, booksProp, coinsProp, buildingProp, logsProp, pipeProp, carProp, slabProp, oldCarProp, tyresProp } from "./sets";
 
 const KENNEY = ["tree_oak", "tree_default", "flower_redA", "flower_yellowA", "lantern", "cart", "stall-green"];
@@ -104,6 +105,10 @@ export class World {
       else if (p.k === "slab") obj = slabProp(p.len ?? 10, p.d ?? 3);
       else if (p.k === "oldCar") obj = oldCarProp(p.color);
       else if (p.k === "tyres") obj = tyresProp(p.rows?.length ?? 4);
+      else if (p.k === "meter") obj = meterProp();
+      else if (p.k === "shopCart") obj = shopCartProp();
+      else if (p.k === "sedan") obj = sedanProp(p.color);
+      else if (p.k === "streetClock") obj = streetClockProp();
       else { const g = new THREE.Group(), b = new Batch(); for (const y of p.rows ?? [0]) shelfRowExport(b, [0, 0, 0], 0, p.len ?? 2, y, 0, 9, p.color); b.build(g); obj = g; }
       obj.position.set(o[0] + p.p[0], o[1] + p.p[1], o[2] + p.p[2]); obj.rotation.y = p.yaw ?? 0; obj.visible = false; R.add(obj);
       this.props.push({ obj, shot: si, spec: p, liq, c0: liq ? new THREE.Color(p.color ?? "#3a6fb0") : undefined });
@@ -142,7 +147,8 @@ export class World {
       if (!p.obj.visible) continue;
       if (p.spec.path) { const [q, rz] = pathAt(p.spec.path, f), o = this.origins[this.spec.shots[id].set]; p.obj.position.set(o[0] + q[0], o[1] + q[1], o[2] + q[2]); p.obj.rotation.z = rz; }
       if (p.spec.lift) {
-        const L = liftAt(p.spec.lift, f), u = p.obj.userData as { body: THREE.Object3D; screws: THREE.Mesh[]; steps: THREE.Object3D | null; tilt?: boolean };
+        const L = liftAt(p.spec.lift, f), u = p.obj.userData as { body: THREE.Object3D; screws: THREE.Mesh[]; steps: THREE.Object3D | null; tilt?: boolean; flag?: THREE.Object3D };
+        if (u.flag) { u.flag.rotation.z = -Math.PI / 2 * (1 - L); u.flag.scale.setScalar(0.3 + 0.7 * Math.min(1, L * 1.6)); continue; }
         if (u.tilt) { u.body.position.y = L * 0.3; u.body.rotation.z = L * 0.15; u.body.rotation.x = -L * 0.15; } else u.body.position.y = L;
         for (const sc of u.screws) sc.scale.y = Math.max(L + 0.16, 0.001);
         if (u.steps) u.steps.scale.y = Math.max(L + 0.3, 0.001);

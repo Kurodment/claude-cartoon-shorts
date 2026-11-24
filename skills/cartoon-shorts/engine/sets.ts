@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { Batch, boxGeo, V, lam, house, prop, Kit } from "./build";
 import { ctex, planksHD, stoneHD, cobbleHD, grassHD, brick, rep, facadeHD, roofHD, water } from "./paint";
 import { twoTone } from "./shade";
+import { buildGrocery, buildDowntown } from "./town30s";
 export type V3 = [number, number, number];
 export const TABLE_Y = 0.92, COUNTER_Y = 1.05;
 /** desk on the capitol plaza, relative to the set origin */
@@ -657,11 +658,12 @@ export const tyresProp = (n = 4) => { const g = new THREE.Group(), b = new Batch
 export const SET_KINDS = {
   lab: buildLab, shop: buildPharm, ward: buildWard, street: buildStreet, brainCastle: buildBrain, capitol: buildCap, bathroom: buildBath,
   office: buildOffice, kitchen: buildKitchen, harbor: buildHarbor, palace: buildPalace, meadow: buildMeadow, mudTown: buildMudTown, garage: buildGarage, bistro: buildBistro,
+  grocery: buildGrocery, downtown: buildDowntown,
 } as const;
 export type SetKind = keyof typeof SET_KINDS;
 /** what each set sounds like (audio.py room tones) and where its open side is */
 export const SET_AMBIENCE: Record<SetKind, string> = { lab: "lab", shop: "shop", ward: "room", street: "street", brainCastle: "outdoor", capitol: "outdoor", bathroom: "room",
-  office: "room", kitchen: "room", harbor: "harbor", palace: "crowd", meadow: "outdoor", mudTown: "street", garage: "room", bistro: "shop" };
+  office: "room", kitchen: "room", harbor: "harbor", palace: "crowd", meadow: "outdoor", mudTown: "street", garage: "room", bistro: "shop", grocery: "shop", downtown: "street" };
 /** bottle shelf row for props: all one colour when color is given */
 export const shelfRowExport = (b: Batch, o: V3, x0: number, x1: number, y: number, z: number, seed: number, color?: string) => {
   let x = x0, i = 0;

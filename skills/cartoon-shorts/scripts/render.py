@@ -67,7 +67,23 @@ def sheet(a):
     print(f"sheet: {a.out}.jpg  frames {frames}")
 
 
+def archive(out):
+    """never overwrite a finished version: the existing file moves to <name>_v1.mp4, _v2 ... (one click back)"""
+    if not os.path.exists(out):
+        return
+    base, ext = os.path.splitext(out)
+    n = 1
+    while os.path.exists(f"{base}_v{n}{ext}"):
+        n += 1
+    os.replace(out, f"{base}_v{n}{ext}")
+    for side in ("_qa.txt", "_qa.jpg"):
+        if os.path.exists(base + side):
+            os.replace(base + side, f"{base}_v{n}{side}")
+    print(f"archived previous version -> {base}_v{n}{ext}")
+
+
 def final(a):
+    archive(a.out)
     work = os.path.splitext(a.out)[0] + "_video.mp4"
     npx = shutil.which("npx") or "npx"
     cmd = [npx, "remotion", "render", "src/index.ts", a.comp, work, "--muted", "--codec", "h264", "--crf", "16", f"--scale={a.scale}", "--gl=angle", "--log=error"]
