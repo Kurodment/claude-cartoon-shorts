@@ -18,7 +18,11 @@ export const wordsAt = (words: Word[]) => {
 };
 
 /** camera key: glide (dur frames, default 24) or cut to a framing that creeps in at `push` per frame (+ `punch` for ~n f) */
-export type CamKey = { f: number; pos: V3; look: V3; fov?: number; roll?: number; push?: number; punch?: number; n?: number; dur?: number; cut?: boolean };
+export type CamKey = { f: number; pos: V3; look: V3; fov?: number; roll?: number; push?: number; punch?: number; n?: number; dur?: number; cut?: boolean;
+  /** glide easing: smooth (default), out (fast start, soft landing: reveals, whips), back (small overshoot: arrivals), in */
+  ease?: "smooth" | "out" | "back" | "in";
+  /** via-points for a curved glide (Catmull-Rom through them), set-relative */
+  via?: V3[] };
 /** expression / wave / reach timelines: a value, or {frame: value} switching LEAD before each frame */
 export type Timeline<T> = T | Record<number, T>;
 export type ActorSpec = {
@@ -34,6 +38,10 @@ export type ActorSpec = {
   dust?: boolean; // dust puffs behind while moving
   /** a card drawing held in the hand on the screen-right side (guide, tyre, paper, sack, dish, tablets, ...); null = empty hand */
   hold?: Timeline<string | null>; holdW?: number;
+  /** arm pose: one name for the right arm ("point") or "left,right" ("hip,hip", "cross,cross", "temple,hang"); null = default */
+  pose?: Timeline<string | null>;
+  /** idle life (breathing bob + sway) is on by default; false for statues / cards that must stay still */
+  idle?: boolean;
 };
 /** effect cards; f/f0 frames, p set-relative; see engine/fxlib.ts for each kind's parameters */
 export type FxSpec = { k: string; f?: number; f0?: number; f1?: number; dur?: number; p: V3; s?: number; w?: number; h?: number;

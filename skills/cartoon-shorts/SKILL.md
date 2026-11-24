@@ -44,6 +44,8 @@ and real people's words may not - never put an invented quote in a real person's
   3. PAYOFF: the whole trick is clear, then the last sentence reveals the real identity / result ("Ve bunu tarihte
      gerçekten yapan şirket Nescafé'ydi."). The real name is held back until this sentence.
   The viewer's role is a character on screen (a neutral outfit, the same one in every shot).
+**Numbers**: every big number gets an everyday comparison ("bu altı yıllık kira demek") and a visible prop / fx.
+**Ideas** (when pitching): add 2-4 words of thumbnail text that do NOT repeat the title, and the series it could start.
 **Retention rules (both structures)**: the first sentence (~2 s) states the stakes, i.e. why the viewer should care,
 not just a surprising number. No intro, no slow transition, no empty pause: sentences follow each other directly (voice
 pauses: voice.py take re-cuts the take with steady 0.28 s gaps), every shot change lands on a cue (whoosh / pop / thump). End on the payoff
@@ -100,7 +102,9 @@ export const spec: Spec = { id, total, words: W,
   shots: [{ a: startFrame, set, light?: "day"|"golden", sun?: [az, el], cam: [...], cast?: [...], fx?: [...], props?: [...] }] }
 ```
 All positions are metres relative to the shot's set origin; y up, the open side of interiors is +z (camera side).
-- **cam**: `{ f, pos, look, fov?=40, roll?, push?=0.0025, punch?, n?, dur?=24, cut? }` - first key at the shot start;
+- **cam**: `{ f, pos, look, fov?=40, roll?, push?=0.0025, punch?, n?, dur?=24, cut?, ease?, via? }` (`ease`: smooth |
+  out = fast start + soft landing for reveals/whips | back = small overshoot for arrivals; `via: [[x,y,z]...]` curves the
+  glide through those points: orbit around a subject, crane over a wall, follow a road) - first key at the shot start;
   later keys glide (`dur`) or `cut`. Every hold creeps in (`push` 0.002-0.0035); `punch` 0.007-0.012 for n=20-30 f on a
   punch word. Land changes 4-8 f before their word (`f: w("x") - 6`). Rolls 0.02-0.05 rad on emphasis.
 - **Portrait framing**: visible width ≈ 0.41 × distance, height ≈ 0.73 × distance (fov 40). Three people side by
@@ -114,10 +118,17 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   them dots. Put captions low (`0.86`) when the faces sit at 60-70 % height.
 - **cast**: `{ o: outfit, p: [x, z] | [x, y, z], to?: { p, f0, f1, ease? }, mode?: stand|stroll|march|sit, rate?,
   expr?: Expr | {frame: Expr}, wave?: bool | {frame: bool}, reach?: [[frame, 0..1]], facing?: -1|0|1, look?, tilt?,
-  scale?, shadow?, from?, until?, swap?: [[frame, outfit]], cape?: frame, dust?, hold?: draw | {frame: draw|null}, holdW? }`
-  (`hold`: a card drawing in the screen-right hand, arm out; e.g. `hold: "guide"`, `holdW: 0.4` for a tyre/dish). Adults are 1.8 m, face ~1.6 m,
+  scale?, shadow?, from?, until?, swap?: [[frame, outfit]], cape?: frame, dust?, hold?: draw | {frame: draw|null}, holdW?, pose?, idle? }`
+  (`hold`: a card drawing in the screen-right hand, arm out; e.g. `hold: "guide"`, `holdW: 0.4` for a tyre/dish).
+  **Arm poses** `pose: "point"` (right arm) or `"left,right"`, also as a timeline `{0: "hang", [w("x")]: "up,up"}`:
+  hang point up hip belly temple (+ a cuckoo swirl) lift cross cheek thumb shrug fist. Acting map: idea = `hang,up`,
+  shock = `temple,cheek` / `cheek,cheek`, waiting/stubborn = `cross,cross`, boss = `hip,hip`, confused = `temple,hip` or
+  `shrug,shrug`, victory = `up,up` / `fist,fist`, presenting = `hip,lift`, approval = `hip,thumb`, explaining = `point`.
+  Give every on-screen person a pose or a prop in most shots: standing with hanging arms reads as a freeze.
+  **Idle life** is automatic (a slow sway + head tilt on every standing card); `idle: false` for statues. Adults are 1.8 m, face ~1.6 m,
   hands ~1.0 m, a waving hand ~1.9 m at x+0.45. Sitting in a bed: `p: [x, 0.45, z]`, `mode: "sit"`, `shadow: false`.
-  Expressions: neutral stern grin laugh whistle nervous shock relief relief_open dazed pained smile smile_closed.
+  Expressions: neutral stern grin laugh whistle nervous shock relief relief_open dazed pained smile smile_closed snore
+  stubborn squint.
   Outfits: chemist professor pharmacist doctor doctor2 nurse official guard soldier thief disguise patient patient2-4
   gent lady lady2 man worker worker2-5 king queen sailor captain farmer teacher police merchant girl grandma kid
   tourist tourist2 engineer chef waiter mechanic driver critic (or a full Outfit object; a roleplay "you" = one
@@ -239,6 +250,19 @@ Write `out/<name>/prompts.md` instead of (or besides) the engine render, from th
   4. sound: real ElevenLabs sound effects for key impacts (sound-effects skill; costs credits, ask once) + room tones
   5. camera: one motivated move per shot (follow the action, reveal), whip-pan transitions on cues
   6. compare: every 3rd video, side-by-side frames with the reference style notes, score 1-10 per area, pick the next item
+
+## Long-form mode (16:9, 3-15 min) - `longform/` (local install)
+When the user wants a long YouTube video (not a Short): the ReachMora 2D long-form engine (flat ink-on-paper puppets,
+graphics shots: table/documents, counter, chart, map, versus, list, stamps, chapter cards, polaroid ending). Read
+`longform/SKILL.md` + `longform/references/story-format.md` and follow them, with these changes for this channel:
+- Turkish: script, labels and cards in Turkish (write labels in Turkish capitals yourself: İ, Ş, Ğ). Alignment:
+  `RM_LANG=tr` (faster-whisper large-v3 on the GPU; the bundled Parakeet model is English-only, do not download it).
+- Run with the project venv: `cd <skill>/longform && RM_LANG=tr <project>/.venv/Scripts/python.exe -m engine <cmd> <P>`.
+- Voice: ElevenLabs (Can Seçkin) like the shorts, but say the credit cost first: ~150 words/min, so a 5 min video
+  ≈ 4,500 credits and 10 min ≈ 9,000 (more than a free month). Edge `tr-TR-AhmetNeural` is the free fallback.
+- Story rules above still apply (smart-feeling topic, stakes in the first sentence, payoff ending); add a re-hook every
+  60-90 s and a "sen" moment every 30-45 s. Credit "ReachMora" when sharing that engine (`longform/CREDITS.md`).
+- Speed here: 1080p renders about 3-4 min per video minute on 8 cores; offer `--res 720` for long ones.
 
 ## Re-voice a finished short (another narrator, same picture)
 Composition captions read `inputProps.words`; the SFX stem is `shorts/<name>/audio/stem_sfx.wav`.

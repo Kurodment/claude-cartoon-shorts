@@ -43,13 +43,26 @@ export const kickAt = (spec: Spec, f: number) => {
   for (const [f0, g] of spec.kicks ?? []) { const n = Math.floor(f - f0 + 1e-6); if (n >= 0 && n < 7) a += g * (n % 2 ? -1 : 1) * (1 - n / 7) ** 1.5; }
   return a;
 };
+const EASE: Record<string, (t: number) => number> = {
+  out: (t) => 1 - (1 - t) ** 3, in: (t) => t ** 3,
+  back: (t) => { const s = 1.4, x = t - 1; return x * x * ((s + 1) * x + s) + 1; },
+};
+const spline = (pts: V3[], u: number): V3 => {
+  const n = pts.length - 1, x = Math.max(0, Math.min(1, u)) * n, i = Math.min(n - 1, Math.floor(x)), t = x - i;
+  const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(n, i + 2)];
+  return p1.map((_, k) => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t * t + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t * t * t)) as V3;
+};
 export const camAt = (spec: Spec, origin: V3, shot: ShotSpec, f: number): Cam => {
   const keys = shot.cam;
   let c = frame(keys[0], origin, f);
   for (let i = 1; i < keys.length; i++) {
     const k = keys[i];
     if (f < k.f) break;
-    c = k.cut ? frame(k, origin, f) : mixC(c, frame(k, origin, f), glide((f - k.f) / (k.dur ?? 24)));
+    if (k.cut) { c = frame(k, origin, f); continue; }
+    const t = Math.max(0, Math.min(1, (f - k.f) / (k.dur ?? 24))), e = k.ease && EASE[k.ease] ? EASE[k.ease](t) : glide(t), b = frame(k, origin, f);
+    const m = mixC(c, b, e);
+    if (k.via?.length && t < 1) m.pos = spline([c.pos, ...k.via.map((v) => add(origin, v)), b.pos], e);
+    c = m;
   }
   const a = kickAt(spec, f);
   if (!a) return c;
@@ -153,6 +166,11 @@ const actor = (c: Ctx, cam: CamInfo, a: ActorSpec, i: number) => {
     wave: wave ? q(0.8 + 0.12 * Math.sin(c.t * 4 + i), 30) : undefined, prop: a.reach ? ["reach", q(keys1(a.reach, c.f), 30)] : null,
   };
   const held = tl(a.hold, c.f, null as string | null);
+  const pz = tl(a.pose, c.f, null as string | null);
+  if (pz && !held && !wave && !a.reach) { const [l, r] = pz.includes(",") ? pz.split(",") : ["hang", pz]; fo.pose = [l.trim(), r.trim()]; }
+  if (a.idle !== false && !moving && mode !== "sit") { // idle life: never a frozen card
+    fo.tilt = (fo.tilt ?? 0) + q(1.1 * Math.sin((c.f + i * 7) * 0.05), 8); fo.headTilt = (fo.headTilt ?? 0) + q(1.4 * Math.sin((c.f + i * 5) * 0.037 + 1), 8);
+  }
   if (held && !a.reach && !wave) fo.prop = ["reach", 0.55];
 
   const P: V3 = [c.o[0] + x, c.o[1] + y, c.o[2] + z];

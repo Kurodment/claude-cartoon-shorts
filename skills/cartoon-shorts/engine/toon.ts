@@ -227,7 +227,7 @@ const DEF_LIGHT = rad(-120);
 
 // ---------------- faces ----------------
 export type Expr = "neutral" | "stern" | "grin" | "laugh" | "whistle" | "nervous" | "shock" | "relief" | "relief_open" | "dazed"
-  | "pained" | "smile" | "smile_closed" | "lick";
+  | "pained" | "smile" | "smile_closed" | "lick" | "snore" | "stubborn" | "squint";
 type EyeK = "dot" | "small" | "lid" | "slit" | "happy" | "dash" | "squeeze" | "shock" | "shockHalf" | "spiral";
 type MouthK = "dash" | "frown" | "smirk" | "smile" | "smileWide" | "grin" | "laugh" | "o" | "O" | "wave" | "teeth" | "lick";
 /** eyes [back, front], brows [inner, outer] offsets in u (+ = down), mouth kind */
@@ -246,6 +246,9 @@ const FACE: Record<Expr, { eye: [EyeK, EyeK]; brow: [number, number]; mouth: Mou
   smile: { eye: ["dot", "dot"], brow: [0, -1], mouth: "smirk" },
   smile_closed: { eye: ["happy", "happy"], brow: [0, -1], mouth: "smile" },
   lick: { eye: ["dot", "dot"], brow: [0, -1], mouth: "lick" },
+  snore: { eye: ["dash", "dash"], brow: [0, -1], mouth: "o" },
+  stubborn: { eye: ["lid", "lid"], brow: [4, -3], mouth: "frown" },
+  squint: { eye: ["slit", "slit"], brow: [3, -2], mouth: "dash" },
 };
 const halfLid = (k: EyeK): EyeK => (k === "dot" || k === "small" ? "lid" : k === "lid" ? "slit" : k === "shock" ? "shockHalf" : k);
 const eyeKind = (k: EyeK, lid: number): EyeK =>
@@ -445,6 +448,8 @@ const BUILD: Record<Build, { a: number; torso: number; legs: number; tw: number 
 export type FrontOpts = {
   phase?: number; expr?: Expr; mode?: "march" | "stroll" | "stand" | "sit" | "fall"; look?: number; blink?: boolean | number; lift?: number;
   prop?: Prop; tilt?: number; headTilt?: number; wave?: number;
+  /** arm poses [left, right]: hang point up hip belly temple lift cross cheek thumb shrug fist (overrides the default arms) */
+  pose?: [string, string];
   /** canvas angle the key light comes FROM (painted crescent + thick outline side) */
   light?: number; facing?: -1 | 0 | 1; seed?: number;
 };
@@ -518,10 +523,28 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   // rifle at the order: butt by the right hip, held by the hanging right hand, muzzle past the crown
   const R0: P2 = [300 + 47 * u, torsoBot + 0.12 * HH], R1: P2 = [300 + 64 * u, crown - 0.32 * HH];
   const rifle = !!o.rifle && (mode === "march" || mode === "stand" || mode === "stroll");
-  type Arm = { pts: [P2, P2, P2]; front: boolean };
+  type Arm = { pts: [P2, P2, P2]; front: boolean; finger?: boolean; thumb?: boolean; swirl?: boolean };
+  const poseArm = (side: number, pose: string): Arm => {
+    const s = sh(side), X = (k: number) => tcx + side * (T.a * 1.1 + k * u), hx0 = 300 + 3 * u * facing;
+    switch (pose) {
+      case "point": return { pts: [s, [X(28), s[1] - 0.02 * HH], [X(62), s[1] - 0.1 * HH]], front: false, finger: true };
+      case "up": return { pts: [s, [X(14), s[1] - 0.3 * HH], [X(22), s[1] - 0.75 * HH]], front: false };
+      case "hip": return { pts: [s, [X(22), s[1] + 0.3 * HH], [tcx + side * T.a * 0.95, torsoBot - 0.3 * HH]], front: false };
+      case "belly": return { pts: [s, [X(8), s[1] + 0.45 * HH], [tcx + side * 0.25 * T.a, torsoBot - 0.35 * HH]], front: true };
+      case "temple": return { pts: [s, [X(26), s[1] + 0.05 * HH], [hx0 + side * (H.a + 16 * u), hc - 0.1 * HH]], front: false, swirl: true };
+      case "lift": return { pts: [s, [X(20), s[1] - 0.25 * HH], [X(4), s[1] - 0.82 * HH]], front: false };
+      case "cross": return { pts: [s, [X(2), s[1] + 0.38 * HH], [tcx - side * 0.45 * T.a, s[1] + 0.32 * HH]], front: true };
+      case "cheek": return { pts: [s, [X(16), s[1] + 0.05 * HH], [hx0 + side * (H.a + 2 * u), hc + 0.25 * H.b]], front: false };
+      case "thumb": return { pts: [s, [X(20), s[1] + 0.12 * HH], [X(44), s[1] - 0.12 * HH]], front: false, thumb: true };
+      case "shrug": return { pts: [s, [X(18), s[1] + 0.12 * HH], [X(34), s[1] - 0.08 * HH]], front: false };
+      case "fist": return { pts: [s, [X(12), s[1] - 0.28 * HH], [X(6), s[1] - 0.7 * HH]], front: false };
+      default: return { pts: hang(side, 0), front: false };
+    }
+  };
   const arms: Arm[] = [];
   if (mode === "sit") for (const side of [-1, 1]) arms.push({ pts: [sh(side), [tcx + side * (1.1 * T.a + 6 * u), sh(side)[1] + 0.4 * HH], [tcx + side * (1.2 * T.a + 10 * u), torsoBot + 0.04 * HH]], front: false });
   else if (mode === "fall") for (const side of [-1, 1]) arms.push({ pts: [sh(side), [tcx + side * (1.15 * T.a + 12 * u), sh(side)[1] - 0.25 * HH], [tcx + side * (1.3 * T.a + 24 * u), sh(side)[1] - 0.68 * HH]], front: false });
+  else if (opts.pose && !prop && wave === undefined && !rifle) { arms.push(poseArm(-1, opts.pose[0]), poseArm(1, opts.pose[1])); }
   else {
     if (prop === "block") {
       for (const side of [-1, 1]) {
@@ -546,7 +569,12 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
       arms.push({ pts: [S, E, Hd], front: true });
     } else arms.push({ pts: hang(1, sw), front: false });
   }
-  const drawArm = (a: Arm) => { p.stroke(curve(a.pts[0], a.pts[1], a.pts[2]), 5.2 * u, armCol); p.dot(a.pts[2][0], a.pts[2][1], 5.5 * u); };
+  const drawArm = (a: Arm) => {
+    p.stroke(curve(a.pts[0], a.pts[1], a.pts[2]), 5.2 * u, armCol); const [hx, hy] = a.pts[2]; p.dot(hx, hy, 5.5 * u);
+    if (a.finger) { const dx = hx - a.pts[1][0], dy = hy - a.pts[1][1], l = Math.hypot(dx, dy) || 1; p.stroke([[hx, hy], [hx + (dx / l) * 14 * u, hy + (dy / l) * 14 * u]], 2.6 * u); }
+    if (a.thumb) p.stroke([[hx, hy], [hx + Math.sign(hx - 300) * 6 * u, hy - 12 * u]], 2.6 * u);
+    if (a.swirl) { const sw: P2[] = []; for (let i = 0; i <= 24; i++) { const t = i / 24, r = (4 + 10 * t) * u, a2 = t * 12; sw.push([hx + Math.sign(hx - 300) * 26 * u + r * Math.cos(a2), hy - 30 * u + r * Math.sin(a2)]); } p.stroke(sw, 2.4 * u); }
+  };
   // behind the body: rifle, sword, arms
   if (rifle) {
     p.band([R0, R1], "#7a4b2a", 5 * u, 1.5 * u, "round");

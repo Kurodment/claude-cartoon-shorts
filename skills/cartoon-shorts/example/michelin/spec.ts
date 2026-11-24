@@ -29,30 +29,30 @@ export const michelinSpec: Spec = {
       props: [{ k: "tyres", p: [-1.5, 0, -0.6], rows: [0, 1, 2, 3, 4] }, { k: "tyres", p: [1.6, 0, -0.9], rows: [0, 1, 2] }] },
     { a: 114, set: "shop", sun: [150, 40], // 2 a huge problem
       cam: [{ f: 114, pos: [0.6, 1.65, 2.2], look: [0.1, 1.55, -1.0], fov: 36, push: 0.003 }],
-      cast: [{ o: YOU, p: [0, -1.0], expr: { 0: "nervous", [w("sorunun")]: "shock" }, hold: "tyre", holdW: 0.38 }],
+      cast: [{ o: YOU, p: [0, -1.0], expr: { 0: "nervous", [w("sorunun")]: "shock" }, pose: "temple,cheek" }],
       fx: [{ k: "shiver", f: w("sorunun"), p: [0, 1.6, -1.0], s: 0.5 }] },
     { a: 180, set: "town", // 3 fewer than three thousand cars in the whole country
-      cam: [{ f: 180, pos: [5, 2.4, 8], look: [1.5, 1.2, 30], fov: 40, push: 0.0025 }],
+      cam: [{ f: 180, pos: [5, 2.4, 8], look: [1.5, 1.2, 30], fov: 40, push: 0.0025 }, { f: 200, dur: 60, pos: [3.5, 1.8, 13], look: [2, 1.1, 26], fov: 40, push: 0.0025, ease: "out", via: [[5.5, 2.2, 10.5]] }],
       cast: [driver("driver", 44, 18, 180, 266, 2)],
       fx: [{ k: "clock", f: w("3000'den"), dur: 40, p: [-2.5, 3.2, 22], s: 1.0 }],
       props: [car(44, 18, 180, 266, 2, "#8c2f3c")] },
     { a: 266, set: "shop", sun: [150, 40], // 4 no cars, no tyres, sinking
       cam: [{ f: 266, pos: [1.6, 1.7, 4.8], look: [-0.4, 1.2, -1.4], fov: 40, push: 0.003 }],
-      cast: [{ o: YOU, p: [0, -1.0], expr: { 0: "nervous", [w("batıyor")]: "shock" } }],
+      cast: [{ o: YOU, p: [0, -1.0], expr: { 0: "nervous", [w("batıyor")]: "shock" }, pose: { 0: "hang", [w("batıyor")]: "cheek,cheek" } }],
       fx: [{ k: "rain", f: w("satılmıyor"), p: [0, 3.0, -1.0], s: 1.2 }],
       props: [{ k: "tyres", p: [-1.4, 0, -0.4], rows: [0, 1, 2, 3, 4, 5] }, { k: "tyres", p: [1.4, 0, -0.6], rows: [0, 1, 2, 3, 4] }] },
     { a: 363, set: "office", sun: [150, 40], // 5 first move: make people drive more
       cam: [office(363), { f: w("hamlen") - 6, dur: 18, pos: [0.4, 1.65, 3.2], look: [0, 1.5, -1.0], fov: 38, push: 0.003, punch: 0.008, n: 20 }],
-      cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "neutral", [w("hamlen")]: "grin" } }],
+      cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "squint", [w("hamlen")]: "grin" }, pose: { 0: "cross,cross", [w("hamlen")]: "hang,up" } }],
       fx: [{ k: "bulb", f: w("hamlen") - 2, p: [0.25, 2.3, -1.1], s: 0.5 }] },
     { a: 458, set: "road", // 6 nobody knows where to drive
       cam: [{ f: 458, pos: [3.4, 1.9, 6.4], look: [0, 1.0, -1.6], fov: 40, push: 0.0025 }],
-      cast: [{ o: "driver", p: [0, 0.5, -1.7], expr: { 0: "neutral", [w("bilmiyor")]: "dazed" }, shadow: false, look: 1 }],
+      cast: [{ o: "driver", p: [0, 0.5, -1.7], expr: { 0: "neutral", [w("bilmiyor")]: "dazed" }, shadow: false, look: 1, pose: { 0: "hang", [w("bilmiyor") - 6]: "shrug,shrug" } }],
       fx: [{ k: "stars", f: w("bilmiyor"), p: [0, 2.6, -1.7], s: 0.5 }],
       props: [{ k: "oldCar", p: [0, 0, -2], yaw: ALONG_Z }] },
     { a: 542, set: "road", // 7 finding petrol is an adventure
       cam: [{ f: 542, pos: [2.4, 1.6, 5.0], look: [0.3, 1.1, -1.4], fov: 40, push: 0.003 }],
-      cast: [{ o: "driver", p: [0.9, -0.9], expr: "nervous", facing: -1 }],
+      cast: [{ o: "driver", p: [0.9, -0.9], expr: "nervous", facing: -1, pose: "temple,hip" }],
       fx: [{ k: "clock", f: w("macera") - 4, dur: 30, p: [1.3, 2.5, -1.0], s: 0.4 }],
       props: [{ k: "oldCar", p: [0, 0, -2], yaw: ALONG_Z }] },
     { a: 614, set: "office", sun: [150, 40], // 8 so you give them a little red book
@@ -62,7 +62,7 @@ export const michelinSpec: Spec = {
         { k: "sparkle", f: w("kitap"), dur: 26, p: [-0.3, 1.0, 0.1], s: 0.45 }] },
     { a: 707, set: "office", sun: [150, 40], // 9 maps and petrol stations inside
       cam: [office(707)],
-      cast: [{ o: YOU, p: [0, -1.2], expr: "grin", hold: "guide" }],
+      cast: [{ o: YOU, p: [0, -1.2], expr: "grin", pose: "hip,lift" }],
       fx: [{ k: "map", f0: w("haritalar") - 4, f1: w("benzinlikler") + 10, p: [0, 2.6, -2.6], w: 2.4, h: 1.5 }] },
     { a: 779, set: "shop", sun: [150, 40], // 10 it even explains how to change a tyre
       cam: [{ f: 779, pos: [1.2, 1.7, 5.2], look: [0, 1.0, -1.4], fov: 40, push: 0.0025 }],
@@ -75,13 +75,13 @@ export const michelinSpec: Spec = {
       fx: [-1.4, -0.5, 0.4, 1.3].map((x, i) => ({ k: "card", draw: "guide", p: [x, 4, 13], w: 0.26, path: [[w("bedava") - 20 + i * 6, x, 4.2, 13, 0.5 * (i % 2 ? 1 : -1)], [w("bedava") + 10 + i * 6, x * 0.8, 1.4, 13.2, 0]] }) as FxSpec) },
     { a: 972, set: "shop", sun: [150, 40], // 12 one day you walk into a tyre shop
       cam: [{ f: 972, pos: [0.4, 1.8, 6.4], look: [0, 1.2, -2.0], fov: 40, push: 0.0025 }],
-      cast: [{ o: YOU, p: [1.4, 3.2], to: { p: [0.4, 0.2], f0: 975, f1: 1050 }, expr: "smile", mode: "stroll" }, { o: "mechanic", p: [-0.8, -2.2], expr: "neutral", facing: 1 }] },
+      cast: [{ o: YOU, p: [1.4, 3.2], to: { p: [0.4, 0.2], f0: 975, f1: 1050 }, expr: "smile", mode: "stroll" }, { o: "mechanic", p: [-0.8, -2.2], expr: "neutral", facing: 1, pose: "hip,hip" }] },
     { a: 1060, set: "shop", sun: [150, 40], // 13 your book is propping up the workbench leg
       cam: [{ f: 1060, pos: [-0.8, 0.45, -1.4], look: [-1.32, 0.2, -2.93], fov: 34, push: 0.003 }, { f: w("sıkıştırılmış") - 4, dur: 8, pos: [-0.95, 0.38, -1.75], look: [-1.32, 0.12, -2.93], fov: 34, push: 0.003, punch: 0.012, n: 22 }],
       fx: [{ k: "sparkle", f: w("ayağının"), dur: 24, p: [-1.32, 0.2, -2.8], s: 0.3 }] },
     { a: 1155, set: "shop", sun: [150, 40], // 14 people don't value free things
       cam: [{ f: 1155, pos: [0.5, 1.6, 2.6], look: [0.2, 1.3, -1.0], fov: 38, push: 0.003 }],
-      cast: [{ o: YOU, p: [0.2, -1.0], expr: "pained", tilt: 0.12 }] },
+      cast: [{ o: YOU, p: [0.2, -1.0], expr: "stubborn", tilt: 0.12, pose: "cross,cross" }] },
     { a: 1231, set: "office", sun: [150, 40], // 15 so you start charging
       cam: [{ f: 1231, pos: [0.4, 1.65, 3.2], look: [0, 1.4, -1.0], fov: 38, push: 0.003 }],
       cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "neutral", [w("para")]: "grin" }, hold: "guide" }],
@@ -92,7 +92,7 @@ export const michelinSpec: Spec = {
         { o: "chef", p: [1.4, -1.6], to: { p: [0.55, -0.9], f0: 1312, f1: 1350 }, expr: "grin", hold: "dish", holdW: 0.42 }, { o: YOU, p: [-1.5, 1.2], expr: "grin", hold: "guide" }] },
     { a: 1382, set: "bistro", sun: [150, 40], // 17 then you give them stars
       cam: [{ f: 1382, pos: [0.4, 1.9, 4.4], look: [0, 1.6, -0.6], fov: 40, push: 0.003 }],
-      cast: [{ o: "chef", p: [0.4, -1.1], expr: { 0: "neutral", [w("yıldız")]: "laugh" } }],
+      cast: [{ o: "chef", p: [0.4, -1.1], expr: { 0: "neutral", [w("yıldız")]: "laugh" }, pose: { 0: "belly,belly", [w("yıldız")]: "hang,point" } }],
       fx: rosettes(w("yıldız") - 2, 2.5, -0.6) },
     { a: 1462, set: "bistro", sun: [150, 40], // 18 three stars mean one thing
       cam: [{ f: 1462, pos: [0, 2.3, 3.4], look: [0, 2.5, -0.6], fov: 44, push: 0.003 }],
@@ -117,7 +117,7 @@ export const michelinSpec: Spec = {
       props: [{ k: "oldCar", p: [-4, 0, 0], color: "#8c2f3c", path: [[1780, -4, 0, 0], [1870, 4, 0, 0]] }] },
     { a: 1870, set: "shop", sun: [150, 40], // 23 and they buy the new tyre from you
       cam: [{ f: 1870, pos: [0.8, 1.85, 7.0], look: [0, 1.3, -1.2], fov: 40, push: 0.0025 }, { f: w("senden") - 4, dur: 10, pos: [0.6, 1.8, 6.2], look: [0, 1.35, -1.4], fov: 40, push: 0.003, punch: 0.009, n: 20 }],
-      cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "grin", [w("senden")]: "laugh" }, wave: { 0: false, [w("senden")]: true } },
+      cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "grin", [w("senden")]: "laugh" }, pose: { 0: "hip,thumb", [w("senden")]: "fist,fist" } },
         { o: "driver", p: [-0.75, -0.5], expr: "smile", hold: "tyre", facing: 1 }, { o: "gent", p: [0.75, -0.4], expr: "smile", hold: "tyre", facing: -1 }],
       fx: [{ k: "coins", f: w("senden") - 2, p: [0, 1.0, -0.9], s: 0.6 }] },
     { a: 1929, set: "office", sun: [150, 40], // 24 the food guide is a tyre advert in disguise
@@ -126,7 +126,7 @@ export const michelinSpec: Spec = {
       fx: [{ k: "card", draw: "tyre", f: w("lastik", 4) - 2, p: [-0.6, 1.9, -1.0], w: 0.4 }, { k: "puff", f: w("lastik", 4) - 2, p: [-0.6, 1.9, -0.9], s: 0.8 }] },
     { a: 2056, set: "office", sun: [150, 40], // 25 the company that really did it was Michelin
       cam: [{ f: 2056, pos: [0.4, 1.65, 2.4], look: [0.1, 1.6, -1.0], fov: 36, push: 0.003 }, { f: w("Michelin'di") - 4, dur: 8, pos: [0.35, 1.65, 2.0], look: [0.1, 1.62, -1.0], fov: 36, push: 0.003, punch: 0.012, n: 24 }],
-      cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "smile", [w("Michelin'di")]: "laugh" }, hold: "guide" }],
+      cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "smile", [w("Michelin'di")]: "laugh" }, hold: { 0: "guide", [w("Michelin'di")]: null }, pose: { 0: null, [w("Michelin'di")]: "up,up" } }],
       fx: [{ k: "sparkle", f: w("Michelin'di"), dur: 30, p: [0, 2.2, -1.1], s: 0.9 }] },
     { a: 2150, set: "bistro", sun: [150, 40], // 26 today the stars still come from a tyre company
       cam: [{ f: 2150, pos: [0.3, 1.8, 3.8], look: [0, 1.6, -0.8], fov: 40, push: 0.002 }, { f: 2160, dur: 110, pos: [0.6, 2.3, 7.4], look: [0, 1.5, -0.8], fov: 42, push: 0.002 }],
