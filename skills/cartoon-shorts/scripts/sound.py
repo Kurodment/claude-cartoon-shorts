@@ -4,7 +4,7 @@
 #   python sound.py <sound.json> <words.json> <voice.wav> <out_dir> --total <frames>
 # sound.json: {"ambience": [[at, kind], ...], "cues": [[at, kind, db, pan, {params}], ...], "music": null | "chill"}
 #   at = frame number or word reference "word", "word#2" (2nd occurrence), "word+4" / "word#2-6" (frame offset)
-#   ambience kinds: shop lab room street outdoor none     cue kinds: see CUES below
+#   ambience kinds: shop lab room street outdoor harbor crowd none     cue kinds: see CUES below
 import json, os, re, sys
 import numpy as np
 from scipy import ndimage
@@ -104,7 +104,25 @@ CUES = {
     "run": lambda r, p: steps(r, p.get("n", 12), p.get("rate", 6.4), p.get("hard", 0.5), True),
     "creak": lambda r, p: G.creak(p.get("dur", 1.0), r),
     "flutter": lambda r, p: G.flag_flutter(p.get("dur", 1.6), r),
+    "applause": lambda r, p: G.applause(p.get("dur", 2.5), r, p.get("people", 24)),
+    "splash": lambda r, p: G.splash_big(r),
+    "tick": lambda r, p: steps_tick(r, p.get("n", 8)),                          # clock ticking
+    "coins": lambda r, p: coins(r, p.get("n", 9)),
 }
+
+
+def steps_tick(r, n):
+    y = np.zeros(ns(n * 0.5 + 0.2))
+    for k in range(n):
+        x = G.clink(r, 3400 if k % 2 else 2900, 0.06, 0.3); i0 = ns(k * 0.5); y[i0:i0 + len(x)] += x[: len(y) - i0]
+    return y
+
+
+def coins(r, n):
+    y = np.zeros(ns(0.12 * n + 0.4))
+    for k in range(n):
+        x = G.clink(r, r.uniform(3000, 5200), 0.3, 1.2); i0 = ns(k * 0.08 + r.uniform(0, 0.04)); y[i0:i0 + len(x)] += x[: len(y) - i0] * r.uniform(0.5, 1)
+    return y
 
 
 def ambience(r, kind, d):
@@ -120,6 +138,10 @@ def ambience(r, kind, d):
         parts.append((G.breeze(d, r, 0.7), -31, 0))
     if kind == "outdoor":
         parts.append((G.bird_chirps(d, r, 0.35), -30, 0))
+    if kind == "harbor":
+        parts += [(G.water_bed(d, r, 0.6, 0.5), -28, 0), (G.breeze(d, r, 0.6), -32, 0), (G.bird_chirps(d, r, 0.25), -32, 0.4)]
+    if kind == "crowd":
+        parts += [(room(90, 700, 0.8), -26, 0), (G.babble(d, r, 150, 1.05, 4.2, 0.7, fmax=3400), -30, -0.3), (G.babble(d, r, 230, 1.15, 4.6, 0.6, fmax=3600), -32, 0.3)]
     if kind == "street":
         parts.append((lp(colored(ns(d), r, 1.0), 140) * 0.3, -24, 0))
     return parts

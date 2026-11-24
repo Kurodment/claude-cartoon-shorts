@@ -206,3 +206,53 @@ export const fxGate = (p: Pen, k: number) => {
     for (let x = x0 + 20; x < x1 - 4; x += 46) { p.stroke([[x, 20], [x, 490]], 22); p.stroke([[x, 20], [x, 490]], 12, "#5e6672"); p.ell(x, 18, 11, 16, "#5e6672", 6); }
   }
 };
+
+// ================= more effects (v2) =================
+/** idea light bulb with rays, 300 x 400; t 0..1 glow */
+export const fxBulb = (p: Pen, t: number) => {
+  for (let k = 0; k < 8 && t > 0.2; k++) { const a = rad(k * 45 - 90), r0 = 135, r1 = 135 + 50 * t; p.stroke([[150 + r0 * Math.cos(a), 150 + r0 * Math.sin(a)], [150 + r1 * Math.cos(a), 150 + r1 * Math.sin(a)]], 12); p.stroke([[150 + r0 * Math.cos(a), 150 + r0 * Math.sin(a)], [150 + r1 * Math.cos(a), 150 + r1 * Math.sin(a)]], 6, "#ffe27a"); }
+  p.ell(150, 150, 85, 90, t > 0.5 ? "#fff3a0" : "#f7f2dc", 10);
+  p.poly(rr(110, 228, 190, 300, 10), "#9aa2ac", 9);
+  for (const y of [252, 276]) p.stroke([[112, y], [188, y]], 6);
+  p.stroke([[130, 200], [140, 150], [150, 185], [160, 150], [170, 200]], 6, "#c9a043");
+};
+/** clock face with moving hands (time passing), 300 x 300; t 0..1 = one turn of the long hand */
+export const fxClock = (p: Pen, t: number) => {
+  p.ell(150, 150, 130, 130, "#f6ecd2", 12);
+  for (let k = 0; k < 12; k++) { const a = rad(k * 30); p.stroke([[150 + 100 * Math.cos(a), 150 + 100 * Math.sin(a)], [150 + 115 * Math.cos(a), 150 + 115 * Math.sin(a)]], k % 3 ? 5 : 10); }
+  const am = rad(t * 360 - 90), ah = rad(t * 30 + 60 - 90);
+  p.stroke([[150, 150], [150 + 95 * Math.cos(am), 150 + 95 * Math.sin(am)]], 10); p.stroke([[150, 150], [150 + 60 * Math.cos(ah), 150 + 60 * Math.sin(ah)]], 14);
+  p.ell(150, 150, 12, 12, INK, 0);
+};
+/** gold coins bursting up, 400 x 400; t 0..1 */
+export const fxCoins = (p: Pen, t: number) => {
+  for (let i = 0; i < 7; i++) {
+    const a = rad(-160 + i * 23), d = 40 + 150 * t, x = 200 + d * Math.cos(a), y = 300 + d * Math.sin(a) + 260 * t * t, s = 0.4 + 0.6 * Math.abs(Math.cos(t * 9 + i));
+    p.ell(x, y, 32 * s + 4, 32, "#e0b43c", 7); p.ell(x, y, 18 * s + 2, 18, "#f2d36a", 0);
+  }
+};
+/** big curved pointing arrow, 500 x 300 (points right); t 0..1 draws in */
+export const fxArrow = (p: Pen, t: number) => {
+  const pts: P2[] = []; const n = Math.max(2, Math.round(20 * t));
+  for (let i = 0; i <= n; i++) { const u = i / 20; pts.push([40 + 380 * u, 220 - 120 * Math.sin(u * Math.PI * 0.8)]); }
+  p.stroke(pts, 46); p.stroke(pts, 28, "#e2453c");
+  if (t > 0.95) { const [x, y] = pts[pts.length - 1]; p.poly([[x - 30, y - 50], [x + 55, y + 8], [x - 40, y + 55]], "#e2453c", 10); }
+};
+/** cartoon fire, 300 x 400; t = flicker phase */
+export const fxFire = (p: Pen, t: number) => {
+  const j = (k: number) => 14 * Math.sin(t * 20 + k);
+  p.poly([[150 + j(1), 30], [235, 190], [260 + j(2), 300], [200, 380], [100, 380], [40 + j(3), 300], [70, 180], [110 + j(4), 120]], "#f08a2c", 10);
+  p.poly([[150 + j(5), 140], [210, 260], [190, 360], [110, 360], [90, 260]], "#ffd23f", 0);
+};
+/** rain cloud with falling drops, 500 x 400; t phase */
+export const fxRain = (p: Pen, t: number) => {
+  for (let i = 0; i < 9; i++) { const x = 90 + i * 40, y = 200 + ((t * 300 + i * 53) % 180); p.stroke([[x, y], [x - 8, y + 28]], 8, "#69a8e0"); }
+  for (const [x, y, r] of [[150, 140, 70], [250, 110, 90], [350, 145, 65]] as const) p.ell(x, y, r, r * 0.75, "#9aa6b8", 9);
+  p.poly(rr(90, 140, 410, 200, 30), "#9aa6b8", 0);
+};
+/** heart pop, 300 x 300; t 0..1 */
+export const fxHeart = (p: Pen, t: number) => {
+  const s = t < 0.3 ? 0.6 + 1.6 * t : 1, pts: P2[] = [];
+  for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI * 2, x = 16 * Math.sin(a) ** 3, y = -(13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)); pts.push([150 + x * 7.5 * s, 150 + y * 7.5 * s]); }
+  p.poly(pts, "#e2453c", 10);
+};

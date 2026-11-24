@@ -37,7 +37,7 @@ export type ActorSpec = {
 export type FxSpec = { k: string; f?: number; f0?: number; f1?: number; dur?: number; p: V3; s?: number; w?: number; h?: number;
   col?: string; flat?: boolean; rot?: number; until?: number; path?: [number, number, number, number, number?][]; [key: string]: unknown };
 /** 3D props: bottle / flask / pillbox / bottleShelf; path = [frame, x, y, z, rotZ?] keys (smooth) */
-export type PropSpec = { k: "bottle" | "flask" | "pillbox" | "bottleShelf"; p: V3; color?: string; h?: number; r?: number;
+export type PropSpec = { k: "bottle" | "flask" | "pillbox" | "bottleShelf" | "crate" | "books" | "coins"; p: V3; color?: string; h?: number; r?: number;
   liquidTo?: { color: string; f: number; dur: number }; path?: [number, number, number, number, number?][]; spin?: number; len?: number; rows?: number[]; yaw?: number };
 export type ShotSpec = {
   a: number; set: string; light?: "day" | "golden"; sun?: [number, number]; // sun az/el (deg, camera-relative)

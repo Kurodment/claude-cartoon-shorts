@@ -12,7 +12,7 @@ import { NOINK } from "./ink";
 import { Pool, Actor, Fx } from "./cards";
 import { Spec, V3, FPS, PropSpec } from "./spec";
 import { camAt, stage, shotEnd, smooth, pathAt } from "./direct";
-import { SET_KINDS, flask, bottle, aspirinBox, shelfRowExport } from "./sets";
+import { SET_KINDS, flask, bottle, aspirinBox, shelfRowExport, crateProp, booksProp, coinsProp } from "./sets";
 
 const KENNEY = ["tree_oak", "tree_default", "flower_redA", "flower_yellowA", "lantern", "cart", "stall-green"];
 let kitP: Promise<Kit> | null = null;
@@ -94,6 +94,9 @@ export class World {
       if (p.k === "bottle") obj = bottle(p.color ?? "#a8652a", p.h ?? 0.25, p.color ?? "#a8652a");
       else if (p.k === "flask") { obj = flask(p.color ?? "#3a6fb0", p.r ?? 0.1, `f${si}_${pi}`); liq = (obj.userData.liquid as THREE.Mesh).material as THREE.MeshLambertMaterial; }
       else if (p.k === "pillbox") obj = aspirinBox();
+      else if (p.k === "crate") obj = crateProp(p.h ?? 1);
+      else if (p.k === "books") obj = booksProp(p.rows?.length ?? 5);
+      else if (p.k === "coins") obj = coinsProp();
       else { const g = new THREE.Group(), b = new Batch(); for (const y of p.rows ?? [0]) shelfRowExport(b, [0, 0, 0], 0, p.len ?? 2, y, 0, 9, p.color); b.build(g); obj = g; }
       obj.position.set(o[0] + p.p[0], o[1] + p.p[1], o[2] + p.p[2]); obj.rotation.y = p.yaw ?? 0; obj.visible = false; R.add(obj);
       this.props.push({ obj, shot: si, spec: p, liq, c0: liq ? new THREE.Color(p.color ?? "#3a6fb0") : undefined });
@@ -147,7 +150,7 @@ export class World {
     this.hemi.color.set(L.sky); this.hemi.groundColor.set(L.ground); this.hemi.intensity = L.hemiI;
     this.sun.color.set(L.sunCol); this.sun.intensity = L.sunI;
     let Rr = THREE.MathUtils.clamp(dist * 1.15 + 7, 10, 110);
-    if (["street", "capitol", "brainCastle"].includes(this.spec.sets[s.set])) Rr = Math.max(Rr, 34);
+    if (["street", "capitol", "brainCastle", "harbor", "meadow"].includes(this.spec.sets[s.set])) Rr = Math.max(Rr, 34);
     this.sun.position.copy(focus).addScaledVector(sunDir, 260); this.sun.target.position.copy(focus);
     const sc = this.sun.shadow.camera;
     sc.left = -Rr; sc.right = Rr; sc.top = Rr; sc.bottom = -Rr; sc.near = 20; sc.far = 560; sc.updateProjectionMatrix();

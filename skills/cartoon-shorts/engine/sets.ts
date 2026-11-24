@@ -4,7 +4,7 @@
 // shares the bridge/Pisa look (ink, lens, grade).
 import * as THREE from "three";
 import { Batch, boxGeo, V, lam, house, prop, Kit } from "./build";
-import { ctex, planksHD, stoneHD, cobbleHD, grassHD, brick, rep, facadeHD, roofHD } from "./paint";
+import { ctex, planksHD, stoneHD, cobbleHD, grassHD, brick, rep, facadeHD, roofHD, water } from "./paint";
 import { twoTone } from "./shade";
 export type V3 = [number, number, number];
 export const TABLE_Y = 0.92, COUNTER_Y = 1.05;
@@ -374,15 +374,161 @@ export const aspirinBox = () => {
   return m;
 };
 
+
+// ================= more sets (v2) =================
+const wood2 = () => lam("darkWood", () => ({ color: "#5a3826" }));
+const room = (b: Batch, o: V3, wallKey: string, wall: string, wood: string, floorMat: THREE.Material, w = 6.4, back = -4.0) => {
+  const m = lam(wallKey, () => ({ map: plaster(wallKey + "P", wall, wood) }));
+  floor(b, o, -w - 2, back - 0.4, w + 2, 9, floorMat, 2.5);
+  b.add(boxGeo(V(o[0] - w, 0, o[2] + back - 0.4), V(o[0] + w, 4.6, o[2] + back)), m);
+  b.add(boxGeo(V(o[0] - w, 0, o[2] + back - 0.4), V(o[0] - w + 0.4, 4.6, o[2] + 6)), m);
+  b.add(boxGeo(V(o[0] + w - 0.4, 0, o[2] + back - 0.4), V(o[0] + w, 4.6, o[2] + 6)), m);
+};
+/** a shelf unit of books between x0..x1 against the back wall (rows of thin coloured boxes) */
+const books = (b: Batch, o: V3, x0: number, x1: number, z: number, rows: number[], seed: number) => {
+  const cols = ["#8c2f3c", "#2f5f6a", "#3f6fb5", "#6b7a3a", "#c9a043", "#5a3b2a", "#7b5ac9", "#b5653f"];
+  let i = seed;
+  for (const y of rows) {
+    box(b, o, x0, y - 0.04, z - 0.35, x1, y, z + 0.02, wood2());
+    let x = x0 + 0.04;
+    while (x < x1 - 0.08) { const w = 0.05 + ((i * 7) % 4) * 0.012, h = 0.24 + ((i * 13) % 5) * 0.03; box(b, o, x, y, z - 0.3, x + w, y + h, z - 0.06, lam("book" + cols[i % 8], () => ({ color: cols[i % 8] }))); x += w + 0.008; i++; }
+  }
+  box(b, o, x0 - 0.06, 0, z - 0.36, x0, rows[rows.length - 1] + 0.5, z + 0.02, wood2()); box(b, o, x1, 0, z - 0.36, x1 + 0.06, rows[rows.length - 1] + 0.5, z + 0.02, wood2());
+};
+
+/** study / office (1800s-1950s): desk at the centre (top 0.78), bookshelves left and right on the back wall, globe, window */
+export const buildOffice = (kit: Kit, o: V3) => {
+  const g = new THREE.Group(), b = new Batch();
+  room(b, o, "ofWall", "#d9c9a3", "#4a5a3a", lam("planksHD", () => ({ map: planksHD() })));
+  b.add(new THREE.PlaneGeometry(1.6, 2.6).translate(o[0], 2.5, o[2] - 3.98), lam("window", () => ({ map: windowTex() })));
+  books(b, o, -5.6, -1.4, -3.62, [0.5, 1.05, 1.6, 2.15, 2.7], 1); books(b, o, 1.4, 5.6, -3.62, [0.5, 1.05, 1.6, 2.15, 2.7], 5);
+  floor(b, o, -2.4, -2.2, 2.4, 1.6, lam("rug", () => ({ map: tiles("rugT", "#8c2f3c", "#a8434e", 6) })), 4.8, 0.01);
+  box(b, o, -1.25, 0.72, -0.62, 1.25, 0.78, 0.62, wood2());
+  for (const s of [-1, 1]) box(b, o, s * 1.25 - (s > 0 ? 0.55 : 0), 0, -0.55, s * 1.25 + (s < 0 ? 0.55 : 0), 0.72, 0.55, lam("deskWood", () => ({ color: "#6a4430" })));
+  box(b, o, -0.35, 0, -1.6, 0.35, 0.5, -1.0, lam("chairRed", () => ({ color: "#8c2f3c" }))); box(b, o, -0.35, 0.5, -1.6, 0.35, 1.25, -1.48, lam("chairRed", () => ({ color: "#8c2f3c" })));
+  b.add(cylG(0.09, 0.09, 0.03, 16), lam("brass", () => ({ color: "#c9a043" })), M(o[0] + 0.85, 0.78, o[2] - 0.3)); // lamp
+  b.add(cylG(0.012, 0.012, 0.42, 6), lam("brass", () => ({ color: "#c9a043" })), M(o[0] + 0.85, 0.8, o[2] - 0.3));
+  b.add(new THREE.ConeGeometry(0.16, 0.16, 16, 1, true).translate(0, 0.08, 0), lam("lampShade", () => ({ color: "#3f7a4a", side: THREE.DoubleSide })), M(o[0] + 0.85, 1.12, o[2] - 0.3));
+  box(b, o, -0.7, 0.78, -0.2, -0.25, 0.79, 0.15, lam("paperP", () => ({ color: "#f6ecd2" }))); b.add(cylG(0.03, 0.03, 0.05, 10), lam("ink", () => ({ color: "#1d1b22" })), M(o[0] - 0.1, 0.78, o[2] - 0.15));
+  // globe on a stand
+  b.add(cylG(0.02, 0.02, 0.9, 6), wood2(), M(o[0] + 2.4, 0, o[2] + 0.6)); b.add(cylG(0.25, 0.25, 0.04, 16), wood2(), M(o[0] + 2.4, 0, o[2] + 0.6));
+  b.add(new THREE.SphereGeometry(0.3, 24, 16), lam("globe", () => ({ map: globeTex() })), M(o[0] + 2.4, 1.15, o[2] + 0.6));
+  void kit;
+  b.build(g);
+  return g;
+};
+const globeTex = () => ctex("globeTex", 512, 256, (g, r) => {
+  g.fillStyle = "#5aa0d0"; g.fillRect(0, 0, 512, 256); g.fillStyle = "#e9d9a8";
+  for (let i = 0; i < 9; i++) { g.beginPath(); const x = r() * 512, y = 40 + r() * 170; for (let k = 0; k < 9; k++) { const a = (k / 9) * Math.PI * 2, rr = 22 + r() * 30; g.lineTo(x + Math.cos(a) * rr * 1.4, y + Math.sin(a) * rr); } g.fill(); }
+});
+
+/** kitchen (today): counter along the back wall (top 0.92) with sink and stove, upper cabinets, fridge, a table at the centre (top 0.76) */
+export const buildKitchen = (kit: Kit, o: V3) => {
+  const g = new THREE.Group(), b = new Batch(), white = lam("kWhite", () => ({ color: "#f4f2ee" })), wood = lam("kWood", () => ({ color: "#c08a52" })), steel = lam("steel", () => ({ color: "#b9c2c8" }));
+  const wall = lam("kTiles", () => ({ map: wallTiles() }));
+  floor(b, o, -8, -4.4, 8, 9, lam("kFloor", () => ({ map: tiles("kFloorT", "#d8c7a8", "#c9b694", 8) })), 2.5);
+  b.add(boxGeo(V(o[0] - 6.4, 0, o[2] - 4.4), V(o[0] + 6.4, 4.2, o[2] - 4.0)), wall);
+  b.add(boxGeo(V(o[0] - 6.4, 0, o[2] - 4.4), V(o[0] - 6.0, 4.2, o[2] + 6)), lam("kWall", () => ({ color: "#e9dcc4" })));
+  b.add(boxGeo(V(o[0] + 6.0, 0, o[2] - 4.4), V(o[0] + 6.4, 4.2, o[2] + 6)), lam("kWall", () => ({ color: "#e9dcc4" })));
+  b.add(new THREE.PlaneGeometry(1.6, 1.2).translate(o[0] + 2.6, 2.0, o[2] - 3.98), lam("window", () => ({ map: windowTex() })));
+  box(b, o, -5.5, 0, -4.0, 4.6, 0.86, -3.4, white); box(b, o, -5.6, 0.86, -4.0, 4.7, 0.92, -3.35, wood);
+  for (let x = -5.3; x < 4.4; x += 0.75) box(b, o, x, 0.1, -3.4, x + 0.68, 0.8, -3.38, lam("kDoor", () => ({ color: "#e8e4dc" })));
+  box(b, o, -5.5, 2.0, -4.0, 1.6, 2.9, -3.65, white);
+  box(b, o, 1.9, 0.92, -3.95, 2.9, 0.94, -3.45, steel); b.add(cylG(0.015, 0.015, 0.3, 6), steel, M(o[0] + 2.4, 0.94, o[2] - 3.9)); // sink + tap
+  box(b, o, -1.6, 0.92, -3.95, -0.6, 0.95, -3.45, lam("stoveTop", () => ({ color: "#2a2a30" })));
+  for (const [x, z] of [[-1.35, -3.82], [-0.85, -3.82], [-1.35, -3.58], [-0.85, -3.58]]) b.add(cylG(0.09, 0.09, 0.012, 16), lam("burner", () => ({ color: "#4a4a52" })), M(o[0] + x, 0.95, o[2] + z));
+  box(b, o, 4.75, 0, -4.0, 5.85, 2.1, -3.2, white); box(b, o, 4.78, 1.2, -3.2, 4.82, 1.75, -3.18, steel); // fridge
+  box(b, o, -0.9, 0.7, -0.6, 0.9, 0.76, 0.6, wood); for (const [x, z] of [[-0.8, -0.5], [0.8, -0.5], [-0.8, 0.5], [0.8, 0.5]]) box(b, o, x - 0.04, 0, z - 0.04, x + 0.04, 0.7, z + 0.04, wood);
+  void kit;
+  b.build(g);
+  return g;
+};
+
+/** harbour: cobbled quay for z < 0 (edge at z 0, y 0), water at y -1.2 for z > 0, a steamship at z 12 (funnel tops (±3, 10.5, 12)),
+ *  crates and bollards on the quay, warehouses along z -22 */
+export const buildHarbor = (kit: Kit, o: V3) => {
+  const g = new THREE.Group(), b = new Batch();
+  floor(b, o, -150, -120, 150, 0, lam("cobbleHD", () => ({ map: cobbleHD() })), 4);
+  box(b, o, -150, -1.4, -0.4, 150, 0.01, 0, lam("quayStone", () => ({ map: stoneHD() })), 1.2);
+  floor(b, o, -300, 0, 300, 300, lam("harbourWater", () => ({ map: rep(water(), 30, 30) })), 6, -1.2);
+  const hull = lam("hull", () => ({ color: "#2a2f3a" })), red = lam("hullRed", () => ({ color: "#a83232" })), white = lam("shipWhite", () => ({ color: "#efece4" })), deck = lam("shipDeck", () => ({ color: "#c89a62" }));
+  box(b, o, -13, -2.2, 9.5, 13, 1.4, 14.5, hull); box(b, o, -13, -2.2, 9.48, 13, -1.0, 14.52, red); box(b, o, -13, 1.4, 9.5, 13, 1.6, 14.5, deck);
+  const bow = new THREE.BufferGeometry().setFromPoints([V(o[0] + 13, -2.2, o[2] + 9.5), V(o[0] + 17, 1.4, o[2] + 12), V(o[0] + 13, 1.4, o[2] + 9.5),
+    V(o[0] + 13, -2.2, o[2] + 14.5), V(o[0] + 13, 1.4, o[2] + 14.5), V(o[0] + 17, 1.4, o[2] + 12), V(o[0] + 13, -2.2, o[2] + 9.5), V(o[0] + 13, -2.2, o[2] + 14.5), V(o[0] + 17, 1.4, o[2] + 12)]);
+  bow.computeVertexNormals(); b.add(bow, hull);
+  box(b, o, -7, 1.6, 10.3, 6, 4.4, 13.7, white); box(b, o, -4, 4.4, 10.8, 3, 6.0, 13.2, white);
+  for (let x = -6.5; x < 6; x += 1.1) b.add(new THREE.CircleGeometry(0.25, 12).translate(o[0] + x, 3.0, o[2] + 10.28).rotateY(0), lam("porthole", () => ({ color: "#2a3a4a" })));
+  for (const x of [-3, 3]) { b.add(cylG(0.9, 0.85, 4.5, 16), lam("funnel", () => ({ color: "#c8323a" })), M(o[0] + x, 6.0, o[2] + 12)); b.add(cylG(0.92, 0.92, 1.0, 16), lam("funnelBlk", () => ({ color: "#1d1b22" })), M(o[0] + x, 9.5, o[2] + 12)); }
+  for (const x of [-10, 10]) b.add(cylG(0.12, 0.1, 9, 8), deck, M(o[0] + x, 1.6, o[2] + 12));
+  for (let i = 0; i < 6; i++) b.add(cylG(0.18, 0.22, 0.6, 10), lam("bollard", () => ({ color: "#3a3f48" })), M(o[0] - 25 + i * 10, 0, o[2] - 0.8));
+  for (const [x, z, n] of [[-8, -4, 3], [-5.5, -5, 2], [7, -4.5, 4], [9.5, -6, 2]] as const) for (let k = 0; k < n; k++) box(b, o, x + (k % 2) * 1.05, Math.floor(k / 2) * 1.0, z, x + (k % 2) * 1.05 + 1.0, Math.floor(k / 2) * 1.0 + 1.0, z + 1.0, lam("crate", () => ({ map: crateTex() })));
+  for (let i = 0; i < 5; i++) house(b, o[0] - 30 + i * 14, o[2] - 26, 0, 12, 10, 9 + (i % 2) * 2, i + 2, 0);
+  prop(b, kit, "cart", o[0] - 2, 0, o[2] - 8, 2.2, 0.5);
+  b.build(g);
+  return g;
+};
+const crateTex = () => ctex("crateTex", 256, 256, (g) => {
+  g.fillStyle = "#c08a52"; g.fillRect(0, 0, 256, 256); g.strokeStyle = "#7a4f33"; g.lineWidth = 16; g.strokeRect(8, 8, 240, 240);
+  g.beginPath(); g.moveTo(16, 16); g.lineTo(240, 240); g.stroke(); g.fillStyle = "rgba(90,56,38,0.35)"; for (let y = 40; y < 240; y += 52) g.fillRect(16, y, 224, 4);
+});
+
+/** palace hall: chequered marble floor, red walls with gold trim, a throne on a dais at (0, 0.6, -3), red carpet along x = 0, columns at x ±3.6 */
+export const buildPalace = (kit: Kit, o: V3) => {
+  const g = new THREE.Group(), b = new Batch(), gold = lam("gold", () => ({ color: "#e0b43c" })), red = lam("throneRed", () => ({ color: "#a8232f" }));
+  room(b, o, "palWall", "#9a2f3a", "#6a1f28", lam("palFloor", () => ({ map: tiles("palFloorT", "#f2ede2", "#2e2a36", 6) })), 7.4);
+  box(b, o, -7.0, 3.3, -4.02, 7.0, 3.45, -3.96, gold); box(b, o, -7.0, 1.0, -4.02, 7.0, 1.08, -3.96, gold);
+  box(b, o, -2.0, 0, -4.0, 2.0, 0.3, -1.8, lam("dais", () => ({ map: stoneHD("daisHD", ["#e8e0cc", "#ddd3bd", "#efe7d4", "#d6ccb5"], "#b3a996") })), 1);
+  box(b, o, -1.6, 0.3, -3.9, 1.6, 0.6, -2.1, lam("dais", () => ({ color: "#e8e0cc" })));
+  box(b, o, -0.55, 0.6, -3.4, 0.55, 1.1, -2.7, red); box(b, o, -0.55, 1.1, -3.5, 0.55, 2.6, -3.3, red); box(b, o, -0.65, 2.6, -3.52, 0.65, 2.8, -3.28, gold);
+  for (const s of [-1, 1]) box(b, o, s * 0.55 - (s > 0 ? 0 : 0.12), 0.6, -3.45, s * 0.55 + (s > 0 ? 0.12 : 0), 1.45, -2.7, gold);
+  floor(b, o, -0.9, -1.8, 0.9, 9, lam("carpet", () => ({ color: "#b0283a" })), 2, 0.012);
+  for (const x of [-3.6, 3.6]) for (const z of [-2.5, 0.5, 3.5]) { b.add(cylG(0.32, 0.3, 4.6, 16), lam("palCol", () => ({ color: "#f3efe6" })), M(o[0] + x, 0, o[2] + z)); b.add(cylG(0.45, 0.45, 0.25, 16), gold, M(o[0] + x, 4.35, o[2] + z)); }
+  for (const x of [-5.2, 5.2]) b.add(new THREE.PlaneGeometry(1.2, 2.6).translate(o[0] + x, 2.6, o[2] - 3.95), lam("banner", () => ({ map: bannerTex() })));
+  void kit;
+  b.build(g);
+  return g;
+};
+const bannerTex = () => ctex("palBanner", 128, 256, (g) => {
+  g.fillStyle = "#2f4f9a"; g.fillRect(0, 0, 128, 256); g.fillStyle = "#e0b43c"; g.fillRect(0, 0, 128, 14); g.beginPath(); g.moveTo(0, 220); g.lineTo(64, 256); g.lineTo(128, 220); g.lineTo(128, 256); g.lineTo(0, 256); g.fill();
+  g.beginPath(); g.arc(64, 110, 30, 0, Math.PI * 2); g.fill(); g.fillStyle = "#2f4f9a"; g.beginPath(); g.arc(64, 110, 16, 0, Math.PI * 2); g.fill();
+});
+
+/** meadow: open grass to the horizon, a few rolling hills, trees and flowers, a dirt path along +z (x ±1.2) */
+export const buildMeadow = (kit: Kit, o: V3) => {
+  const g = new THREE.Group(), b = new Batch(), grassM = lam("grassHD", () => ({ map: grassHD() }));
+  floor(b, o, -200, -200, 200, 200, grassM, 4);
+  floor(b, o, -1.2, -60, 1.2, 60, lam("dirtPath", () => ({ color: "#b8956a" })), 2, 0.012);
+  for (const [x, z, r] of [[-60, -90, 40], [40, -110, 55], [120, -70, 35], [-130, -60, 45]] as const) { const h = new THREE.SphereGeometry(r, 32, 16); h.scale(1, 0.32, 1); b.add(h, grassM, M(o[0] + x, -2, o[2] + z)); }
+  for (const [x, z, h] of [[-7, -4, 5], [6, -8, 6], [-12, -14, 6.5], [11, -2, 4.5], [-4, -18, 5], [16, -16, 6]] as const) prop(b, kit, "tree_oak", o[0] + x, 0, o[2] + z, h);
+  for (let i = 0; i < 16; i++) prop(b, kit, i % 2 ? "flower_redA" : "flower_yellowA", o[0] + (i % 2 ? 2 : -2) + ((i * 37) % 5) - 2.5, 0, o[2] + 6 - i * 2.2, 0.45);
+  b.build(g);
+  return g;
+};
+
 /** the set library: kind -> builder (origin = where the engine places this set instance) */
 export const SET_KINDS = {
   lab: buildLab, shop: buildPharm, ward: buildWard, street: buildStreet, brainCastle: buildBrain, capitol: buildCap, bathroom: buildBath,
+  office: buildOffice, kitchen: buildKitchen, harbor: buildHarbor, palace: buildPalace, meadow: buildMeadow,
 } as const;
 export type SetKind = keyof typeof SET_KINDS;
 /** what each set sounds like (audio.py room tones) and where its open side is */
-export const SET_AMBIENCE: Record<SetKind, string> = { lab: "lab", shop: "shop", ward: "room", street: "street", brainCastle: "outdoor", capitol: "outdoor", bathroom: "room" };
+export const SET_AMBIENCE: Record<SetKind, string> = { lab: "lab", shop: "shop", ward: "room", street: "street", brainCastle: "outdoor", capitol: "outdoor", bathroom: "room",
+  office: "room", kitchen: "room", harbor: "harbor", palace: "crowd", meadow: "outdoor" };
 /** bottle shelf row for props: all one colour when color is given */
 export const shelfRowExport = (b: Batch, o: V3, x0: number, x1: number, y: number, z: number, seed: number, color?: string) => {
   let x = x0, i = 0;
   while (x < x1) { const h = 0.18 + ((seed * 7 + i * 13) % 5) * 0.035; addBottle(b, color ?? SHELF_COLS[(seed + i * 3) % SHELF_COLS.length], o[0] + x, o[1] + y, o[2] + z, h); x += h * 0.62 + 0.03; i++; }
+};
+/** prop builders (v2): a wooden crate, a stack of books, a pile of gold coins */
+export const crateProp = (size = 1) => { const m = new THREE.Mesh(new THREE.BoxGeometry(size, size, size).translate(0, size / 2, 0), lam("crate", () => ({ map: crateTex() }))); m.castShadow = m.receiveShadow = true; return m; };
+export const booksProp = (n = 5) => {
+  const g = new THREE.Group(), cols = ["#8c2f3c", "#2f5f6a", "#3f6fb5", "#6b7a3a", "#c9a043", "#5a3b2a"];
+  let y = 0;
+  for (let i = 0; i < n; i++) { const h = 0.05 + (i % 3) * 0.012, m = new THREE.Mesh(new THREE.BoxGeometry(0.26 - (i % 2) * 0.03, h, 0.19).translate(0, y + h / 2, 0), lam("book" + cols[i % 6], () => ({ color: cols[i % 6] }))); m.rotation.y = ((i % 3) - 1) * 0.12; m.castShadow = true; g.add(m); y += h; }
+  return g;
+};
+export const coinsProp = (n = 14) => {
+  const g = new THREE.Group(), mat = lam("coinGold", () => ({ color: "#e0b43c" }));
+  for (let i = 0; i < n; i++) { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.008, 16), mat), a = i * 2.4, r = 0.012 * i; m.position.set(Math.cos(a) * r, 0.004 + Math.floor(i / 5) * 0.008, Math.sin(a) * r); m.castShadow = true; g.add(m); }
+  return g;
 };

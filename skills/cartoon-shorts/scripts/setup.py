@@ -58,8 +58,9 @@ def new(name, comp):
     root = open("src/Root.tsx", encoding="utf-8").read()
     if comp not in root:
         imp = f'import {{ makeShort }} from "./shorts/engine/Short";\n' if "makeShort" not in root else ""
-        imp += f'import {{ {var} }} from "./shorts/{name}/spec";\nconst {comp}C = makeShort({var});\n'
-        root = imp + root
+        imp += f'import {{ {var} }} from "./shorts/{name}/spec";\n'
+        last = max(m.end() for m in re.finditer(r"^import .*?;\s*$", root, re.M | re.S))
+        root = root[:last] + "\n" + imp + f"const {comp}C = makeShort({var});\n" + root[last:]
         comp_tag = f'      <Composition id="{comp}" component={{{comp}C}} durationInFrames={{{var}.total}} fps={{30}} width={{1080}} height={{1920}} />\n'
         i = root.rfind("</>")
         root = root[:i] + comp_tag + "    " + root[i:]

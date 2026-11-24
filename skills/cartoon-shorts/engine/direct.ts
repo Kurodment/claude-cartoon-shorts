@@ -2,7 +2,7 @@
 // a shot at a frame (cast cards + effect cards). Pure functions of (spec, shot, frame).
 import { Spec, ShotSpec, CamKey, V3, FPS, Timeline, ActorSpec, FxSpec } from "./spec";
 import { Stage, CamInfo, person, blob, lidAt, q, hh, LEAD, LIGHT, SUN, findSun, FxPlace } from "./cards";
-import { Pen, Expr, Outfit, FrontOpts, fxBurst, fxStars, fxPuff } from "./toon";
+import { Pen, Expr, Outfit, FrontOpts, fxBurst, fxStars, fxPuff, fxNote } from "./toon";
 import * as E from "./efx";
 import { OUTFITS } from "./outfits";
 
@@ -118,6 +118,14 @@ export const FX: Record<string, (c: Ctx, x: FxSpec) => void> = {
   map: (c, x) => { const k = q(clamp01((c.f - (x.f0 ?? 0)) / ((x.f1 ?? 1) - (x.f0 ?? 0))), 40); card(c, `map${k}`, E.MAP_W, E.MAP_H, (p) => E.fxMap(p, k), x.p, x.w ?? 2.3, x.h ?? 1.44); },
   gate: (c, x) => { const k = q(smooth((c.f - (x.f0 ?? 0)) / ((x.f1 ?? 30) - (x.f0 ?? 0))), 30); card(c, `gate${k}`, 600, 500, (p) => E.fxGate(p, k), x.p, x.w ?? 7.8, x.h ?? 3.6); },
   ban: (c, x) => { if (c.f < (x.f ?? 0)) return; const k = q(clamp01((c.f - (x.f ?? 0)) / 8), 16); card(c, `ban${k}`, 600, 600, (p) => E.fxBan(p, k), x.p, x.s ?? 0.34, x.s ?? 0.34, { flat: x.flat ?? true }); },
+  bulb: (c, x) => { if (!live(c, x)) return; const k = q(clamp01((c.f - (x.f ?? 0)) / 10), 10); card(c, `bulb${k}`, 300, 400, (p) => E.fxBulb(p, k), x.p, (x.s ?? 0.5) * 0.75, x.s ?? 0.5); },
+  clock: (c, x) => { if (!live(c, x)) return; const k = q(((c.f - (x.f ?? 0)) / (x.dur ?? 60)) % 1, 60); card(c, `clock${k}`, 300, 300, (p) => E.fxClock(p, k), x.p, x.s ?? 0.6, x.s ?? 0.6); },
+  coins: (c, x) => once(c, x, 20, (u) => card(c, `coins${u}`, 400, 400, (p) => E.fxCoins(p, u), x.p, x.s ?? 0.6, x.s ?? 0.6)),
+  arrow: (c, x) => { if (!live(c, x)) return; const k = q(clamp01((c.f - (x.f ?? 0)) / (x.dur ?? 12)), 20); card(c, `arrow${k}`, 500, 300, (p) => E.fxArrow(p, k), x.p, x.w ?? 1, (x.w ?? 1) * 0.6, { rot: x.rot ?? 0 }); },
+  fire: (c, x) => { if (!live(c, x)) return; const k = q((c.t * 2) % 1, 16); card(c, `fire${k}`, 300, 400, (p) => E.fxFire(p, k), x.p, (x.s ?? 0.6) * 0.75, x.s ?? 0.6); },
+  rain: (c, x) => { if (!live(c, x)) return; const k = q((c.t * 1.5) % 1, 20); card(c, `rain${k}`, 500, 400, (p) => E.fxRain(p, k), x.p, x.s ?? 1.2, (x.s ?? 1.2) * 0.8, { soft: true }); },
+  heart: (c, x) => once(c, x, 18, (u) => card(c, `heart${u}`, 300, 300, (p) => E.fxHeart(p, u), [x.p[0], x.p[1] + 0.3 * u, x.p[2]], x.s ?? 0.35, x.s ?? 0.35)),
+  notes: (c, x) => { if (!live(c, x)) return; for (let i = 0; i < 3; i++) { const u = (c.t * 0.6 + i / 3) % 1, kind = i % 2; card(c, `note${kind}`, 220, 240, (p) => fxNote(p, kind), [x.p[0] + 0.3 * u + 0.1 * i, x.p[1] + 0.5 * u, x.p[2]], 0.2 * (x.s ?? 1), 0.22 * (x.s ?? 1)); } },
   /** a static drawing (tablets, paper, tophat, moustache, sack, stamp) with an optional path [frame, x, y, z, rot] */
   card: (c, x) => {
     if (!live(c, x)) return;

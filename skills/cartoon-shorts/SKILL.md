@@ -13,7 +13,7 @@ needed is in this file. Talk to the user in their language (Turkish shorts: Turk
 - Research: at most 2 `WebSearch` (standard) calls; keep facts + source URLs in `SCRIPT.md`, 1-2 lines each.
 - Never print or read whole JSON / logs / source; scripts print compact summaries. Look at ONE contact sheet per round.
 - At most 2 fix rounds on the sheet, then render the final. One QA run on the final.
-- Reuse sets / outfits / fx from the libraries below; copy patterns from `example/eroin/spec.ts` (in this skill) instead of inventing.
+- Reuse sets / outfits / fx from the libraries below; copy patterns from `example/eroin/spec.ts` (a full short) and `example/showcase/spec.ts` (every v2 set, one shot each) in this skill instead of inventing.
 - Write each file once with the Write tool; fix with small Edits.
 
 ## 0. Setup (once per Remotion project; `npx create-video@latest` first)
@@ -64,13 +64,16 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   hands ~1.0 m, a waving hand ~1.9 m at x+0.45. Sitting in a bed: `p: [x, 0.45, z]`, `mode: "sit"`, `shadow: false`.
   Expressions: neutral stern grin laugh whistle nervous shock relief relief_open dazed pained smile smile_closed.
   Outfits: chemist professor pharmacist doctor doctor2 nurse official guard soldier thief disguise patient patient2-4
-  gent lady lady2 man worker worker2-5 kid tourist tourist2 engineer (or a full Outfit object).
+  gent lady lady2 man worker worker2-5 king queen sailor captain farmer teacher police merchant girl grandma kid
+  tourist tourist2 engineer (or a full Outfit object). On a dais/throne: `p: [x, 0.6, z]`, `shadow: false`.
 - **fx** `{ k, ... }`: `cough {f,p,s}` `burst {f,p,s,col,dur}` `puff {f,p,s}` `sparkle {f,dur?,p,s}` `stars {f?,p,s}`
   `shiver {p,s}` `flame {p,s}` `smoke {p: chimney top, f1?: fade, warm?}` `chains {f,dur,p,w,h}` (over a bottle)
   `halo {f,p,s,breakAt?}` `map {f0,f1,p,w,h}` (shipping arcs) `gate {f0,f1,p,w,h}` (bars closing) `ban {f,p,s,flat}`
+  `bulb {f,p,s}` (idea) `clock {f?,dur,p,s}` (time passing) `coins {f,p,s}` `arrow {f,dur,p,w,rot}` `fire {p,s}`
+  `rain {p,s}` (cloud) `heart {f,p,s}` `notes {p,s}` (music)
   `card {draw: tablets|paper|tophat|moustache|sack|stamp, p, w, flat?, rot?, path?: [[f,x,y,z,rot]]}`.
   Every kind takes `until` (and `f` = from). Effects face the camera unless `flat`.
-- **props** `{ k: bottle|flask|pillbox|bottleShelf, p, color?, h?, r?, liquidTo?: {color,f,dur}, path?, spin?, yaw?, len?, rows? }`.
+- **props** `{ k: bottle|flask|pillbox|bottleShelf|crate|books|coins, p, color?, h?, r?, liquidTo?: {color,f,dur}, path?, spin?, yaw?, len?, rows? }`.
   Bottles have a blank paper label (no text); flasks show their liquid through the glass.
 
 ### Set library (coordinates relative to the set origin)
@@ -88,6 +91,17 @@ All positions are metres relative to the shot's set origin; y up, the open side 
 - **capitol** (government 1900s): domed building at the origin, portico z 10-13, steps to z 19, plaza toward +z,
   desk at (0, 0, 34) top .95 for stamp / signing close-ups.
 - **bathroom** (today): tiled wall z -0.5, open cabinet centre (0, 1.55, -0.32), shelves y 1.38 / 1.70, sink y .92.
+- **office** (study 1800s-1950s): desk x ±1.25 z ±0.62 top **0.78** (lamp (0.85, .78, -0.3), paper, ink), chair
+  at z -1.3, bookshelves on the back wall x -5.6..-1.4 and 1.4..5.6, window at x 0, globe (2.4, 1.15, 0.6), rug.
+  Person behind the desk at (0, -1.2); camera (0.6, 1.7, 4.6) -> (0, 1.3, -0.6).
+- **kitchen** (today, home analogies): counter along the back wall z -4..-3.35 top **0.92** (stove x -1.6..-0.6 with 4
+  burners, sink x 1.9..2.9, window x 2.6), fridge x 4.75..5.85, table x ±0.9 z ±0.6 top 0.76. Camera (1.6, 1.65, 3.4) -> (-0.7, 1.35, -2.6).
+- **harbor** (1850-1950): cobbled quay z < 0 (edge z 0), water y -1.2 for z > 0, steamship hull x -13..17 z 9.5..14.5,
+  funnel tops (±3, 10.5, 12) for `smoke`, crates on the quay, bollards along z -0.8, warehouses z -26.
+  Ship wide: camera (-7, 2.4, -9) -> (0, 3.4, 11); people on the quay: put the camera behind them (z -10..-14).
+- **palace** (kings, courts): chequered floor, red walls + gold trim, throne on a dais (seat (0, 0.6, -3)), red carpet
+  along x 0 toward +z, columns x ±3.6 at z -2.5/0.5/3.5, blue banners. Camera (0, 1.9, 6.5) -> (0, 1.5, -2.6).
+- **meadow** (outdoor analogies, countryside): grass to the horizon, hills, oaks, flowers, a dirt path x ±1.2 along +z.
 New kinds: add a builder to `engine/sets.ts` + `SET_KINDS` (only when no set fits; tell the user it costs more).
 
 ## 4. Sound (`shorts/<name>/sound.json`) - no music unless the user wants it
@@ -96,7 +110,8 @@ New kinds: add a builder to `engine/sets.ts` + `SET_KINDS` (only when no set fit
   "cues": [["öksürük", "cough", -10, -0.3], ["yasakladı", "thump", -6, 0, {"f0": 75}], [1864, "creak", -16]] }
 ```
 `at` = frame or word ref (`"word"`, `"word#2"`, `"word+4"`); then kind, dB, pan, {params}. Ambience: shop lab room street
-outdoor none. Cues: cough clink bell shimmer angel whoosh rattle chainWhip thump pop hurrah oof whoa steps run creak flutter.
+outdoor harbor crowd none. Cues: cough clink bell shimmer angel whoosh rattle chainWhip thump pop hurrah oof whoa steps run
+creak flutter applause splash tick coins.
 `"music": "chill"` = quiet lo-fi bed 18 LU under the voice. Hit every visual impact with a cue (same frame).
 `python <skill>/scripts/sound.py shorts/<name>/sound.json src/shorts/<name>/words.json shorts/<name>/voice/voice.wav shorts/<name>/audio --total <frames>`
 
