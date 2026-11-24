@@ -43,7 +43,7 @@ export class World {
   private fog = new THREE.Fog("#bccbec", 25, 420);
   private sunDisc: THREE.Sprite;
   private sunCache = new Map<number, THREE.Vector3>();
-  private cloudMaps: Record<"day" | "golden", THREE.Texture[]>;
+  private cloudMaps: Record<"day" | "golden" | "night", THREE.Texture[]>;
   private clouds: { m: THREE.Mesh; a: number; d: number; y: number }[] = [];
   private sets: Record<string, THREE.Group> = {};
   private origins: Record<string, V3>;
@@ -79,7 +79,7 @@ export class World {
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(4096, 4096);
     R.add(this.hemi, this.sun, this.sun.target);
-    this.cloudMaps = { day: [0, 1, 2, 3].map((k) => cloudHD(k, LOOK.day.cloud)), golden: [0, 1, 2, 3].map((k) => cloudHD(k, LOOK.golden.cloud)) };
+    this.cloudMaps = { day: [0, 1, 2, 3].map((k) => cloudHD(k, LOOK.day.cloud)), golden: [0, 1, 2, 3].map((k) => cloudHD(k, LOOK.golden.cloud)), night: [0, 1, 2, 3].map((k) => cloudHD(k, LOOK.night.cloud)) };
     for (let i = 0; i < 11; i++) {
       const a = (i / 11) * Math.PI * 2 + 0.3, d = 620 + (i % 3) * 60, y = 120 + (i % 4) * 38;
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: this.cloudMaps.day[i % 4], color: new THREE.Color(1.1, 1.1, 1.1), transparent: true, depthWrite: false, fog: false }));

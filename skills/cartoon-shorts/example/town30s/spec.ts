@@ -5,7 +5,7 @@ const line = (os: string[]) => os.map((o, i) => ({ o, p: [(i - (os.length - 1) /
 const lineCam = (f: number) => [{ f, frame: { size: "full" as const, el: 6 } }];
 
 export const town30sSpec: Spec = {
-  id: "Town30s", total: 540, words: [] as Word[],
+  id: "Town30s", total: 630, words: [] as Word[],
   sets: { store: "grocery", main: "downtown" },
   dof: [[0, 0]],
   shots: [
@@ -22,5 +22,9 @@ export const town30sSpec: Spec = {
     { a: 270, set: "main", cam: lineCam(270), cast: line(["belle", "shopper2", "squire", "paperboy", "inventor"]) },
     { a: 360, set: "main", cam: lineCam(360), cast: line(["preacher", "rancher", "cop", "nurse2", "schoolmarm"]) },
     { a: 450, set: "main", cam: lineCam(450), cast: line(["banker", "oldman", "mechanic2", "baker"]) },
+    { a: 540, set: "store", light: "night", sun: [120, 35],
+      cam: [{ f: 540, frame: { size: "full", on: [0, 1, 2], pts: [[0, 2.9, -3.9]] } }],
+      cast: [{ o: "grocer", p: [-1.1, -0.4], expr: "rage", pose: "fist,fist" }, { o: "shopper", p: [0.2, -0.2], expr: "cry", pose: "cheek,cheek" }, { o: "oldman", p: [1.5, -0.5], expr: "snore" }],
+      fx: [{ k: "sign", style: "board", text: "GÜN 3", p: [0, 2.75, -3.8], w: 1.3 }, { k: "sign", style: "news", text: "ARABA|FİYASKOSU", p: [2.7, 1.5, 0.6], w: 0.5 }, { k: "sign", style: "tag", text: "5 KURUŞ", p: [-1.6, 1.25, 1.0], w: 0.4 }] },
   ],
 };

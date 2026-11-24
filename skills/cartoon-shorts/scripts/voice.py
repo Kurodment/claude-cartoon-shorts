@@ -62,6 +62,19 @@ def table(words):
     return "\n".join(rows)
 
 
+def plain_script(script, out):
+    """voice.txt may carry ElevenLabs emotion tags ([curious], [deadpan], [amused], [sighs], [mocking] ...): the tagged
+    text goes to the TTS, a tag-free copy is used for alignment / captions (and for Edge, which would read them aloud)"""
+    import re
+    txt = open(script, encoding="utf-8").read()
+    if "[" not in txt:
+        return script
+    clean = "\n".join(re.sub(r"\s{2,}", " ", re.sub(r"\[[^\]]*\]", "", l)).strip() for l in txt.splitlines())
+    os.makedirs(out, exist_ok=True)
+    p = os.path.join(out, "voice_plain.txt"); open(p, "w", encoding="utf-8").write(clean.strip() + "\n")
+    return p
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("mode", choices=["edge", "take", "table"]); ap.add_argument("a"); ap.add_argument("b", nargs="?"); ap.add_argument("c", nargs="?")
@@ -71,10 +84,12 @@ def main():
         print(table(json.load(open(a.a, encoding="utf-8")))); return
     if a.mode == "edge":
         script, out = a.a, a.b
+        script = plain_script(script, out)
         subprocess.run([sys.executable, os.path.join(HERE, "tts_edge.py"), script, out, "--voice", a.voice, "--rate", a.rate], check=True)
     else:
         take, script, out = a.a, a.b, a.c
         os.makedirs(out, exist_ok=True)
+        script = plain_script(script, out)
         if take.startswith("http"):
             p = os.path.join(out, "take.mp3"); urllib.request.urlretrieve(take, p); take = p
         args = [sys.executable, os.path.join(HERE, "revoice.py"), "--take", take, "--script", script, "--fit-only", out]

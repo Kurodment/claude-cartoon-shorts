@@ -230,7 +230,7 @@ const DEF_LIGHT = rad(-120);
 
 // ---------------- faces ----------------
 export type Expr = "neutral" | "stern" | "grin" | "laugh" | "whistle" | "nervous" | "shock" | "relief" | "relief_open" | "dazed"
-  | "pained" | "smile" | "smile_closed" | "lick" | "snore" | "stubborn" | "squint";
+  | "pained" | "smile" | "smile_closed" | "lick" | "snore" | "stubborn" | "squint" | "rage" | "cry";
 type EyeK = "dot" | "small" | "lid" | "slit" | "happy" | "dash" | "squeeze" | "shock" | "shockHalf" | "spiral";
 type MouthK = "dash" | "frown" | "smirk" | "smile" | "smileWide" | "grin" | "laugh" | "o" | "O" | "wave" | "teeth" | "lick";
 /** eyes [back, front], brows [inner, outer] offsets in u (+ = down), mouth kind */
@@ -252,7 +252,24 @@ const FACE: Record<Expr, { eye: [EyeK, EyeK]; brow: [number, number]; mouth: Mou
   snore: { eye: ["dash", "dash"], brow: [0, -1], mouth: "o" },
   stubborn: { eye: ["lid", "lid"], brow: [4, -3], mouth: "frown" },
   squint: { eye: ["slit", "slit"], brow: [3, -2], mouth: "dash" },
+  rage: { eye: ["lid", "lid"], brow: [6, -4], mouth: "teeth" }, // + purple-red face, steam puffs
+  cry: { eye: ["squeeze", "squeeze"], brow: [-3, 3], mouth: "frown" }, // + tear streams
 };
+/** cartoon emotion marks drawn over the face (front u = 1 % of head width): sweat drop, steam, tears, Zzz */
+const marks = (p: Pen, expr: Expr, cx: number, cy: number, u: number, side: number, eyes: number[]) => {
+  if (expr === "rage") for (const s of [-1, 1]) { // steam puffs from the head sides
+    const x = cx + s * 46 * u, y = cy - 34 * u;
+    p.ell(x, y, 7 * u, 6 * u, "#f4f1ea", 2 * u); p.ell(x + s * 9 * u, y - 10 * u, 9 * u, 8 * u, "#f4f1ea", 2 * u);
+  }
+  if (expr === "cry") for (const ex of eyes) p.poly([[ex - 3 * u, cy + 6 * u], [ex + 3 * u, cy + 6 * u], [ex + 4 * u, cy + 34 * u], [ex, cy + 40 * u], [ex - 4 * u, cy + 34 * u]], "#9fd4ff", 1.8 * u);
+  if (expr === "snore") {
+    const zx = cx + side * 38 * u, zy = cy - 46 * u;
+    for (let i = 0; i < 3; i++) { const k = 1 + i * 0.4, x = zx + side * i * 14 * u, y = zy - i * 16 * u, w = 6 * u * k;
+      p.stroke([[x - w, y - w], [x + w, y - w], [x - w, y + w], [x + w, y + w]], 2.6 * u); }
+  }
+};
+/** face colour per expression: rage flushes purple-red */
+const faceSkin = (skin: string, expr: Expr) => (expr === "rage" ? mix(skin, "#b0406a", 0.5) : skin);
 const halfLid = (k: EyeK): EyeK => (k === "dot" || k === "small" ? "lid" : k === "lid" ? "slit" : k === "shock" ? "shockHalf" : k);
 const eyeKind = (k: EyeK, lid: number): EyeK =>
   lid >= 1 && k !== "happy" && k !== "squeeze" && k !== "spiral" ? "dash" : lid > 0 ? halfLid(k) : k;
@@ -332,6 +349,7 @@ const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing
     p.stroke([[fx - ex + 10.5 * u, ey - 1 * u], [fx + ex - 10.5 * u, ey - 1 * u]], 2.2 * u);
   }
   if (expr === "nervous") p.ell(cx + 40 * u * (facing || 1), cy - 22 * u, 3 * u, 5 * u, "#9fd4ff", 2 * u);
+  marks(p, expr, cx, cy, u, facing || 1, [fx - ex, fx + ex]);
 };
 
 /** profile face (facing screen-right): one eye, brow, nose tick, mouth near the front edge; no skin bump nose, no ear */
@@ -347,6 +365,7 @@ const faceSide = (p: Pen, hx: number, hy: number, W: number, expr: Expr, lid: nu
   if (moustache) taper(p, [hx + 41 * u, hy + 13.5 * u], [hx + 25 * u, hy + (stout ? 11.5 : 16) * u], stout ? 5.5 * u : 4.5 * u, 1.6 * u, moustache);
   if (glasses) { p.ell(ex, ey, 10 * u, 9.5 * u, null, 2.4 * u); p.stroke([[ex - 10 * u, ey - 1 * u], [hx - 8 * u, ey - 3 * u]], 2 * u); }
   if (expr === "nervous") p.ell(hx - 30 * u, hy - 24 * u, 3 * u, 5 * u, "#9fd4ff", 2 * u);
+  marks(p, expr, hx + 10 * u, hy, u, 1, [ex]);
 };
 
 // ---------------- hats ----------------
@@ -697,7 +716,7 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   p.rot = Ah ? [rad(Ah), 300, chin, cpx - 300, cpy - chin] : null;
   hatBehind(p, o, H, 300, hc, light, thick, ow, false);
   const hp = blobPts(300, hc, H);
-  p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
+  p.shadedFill(hp, faceSkin(skin, expr), mul(faceSkin(skin, expr), SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
   const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "helmet" && o.hat !== "cloche";
@@ -821,7 +840,7 @@ export const bodySide = (p: Pen, o: Outfit, opts: SideOpts) => {
   const hx = 300 + 4 * u;
   hatBehind(p, o, H, hx, hc, light, thick, ow, true);
   const hp = blobPts(hx, hc, H);
-  p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
+  p.shadedFill(hp, faceSkin(skin, expr), mul(faceSkin(skin, expr), SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, hx, hc, light, seed, 1, true);
   const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "helmet" && o.hat !== "cloche";

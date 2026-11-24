@@ -279,3 +279,33 @@ export const fxDish = (p: Pen) => {
   p.ell(180, 200, 160, 40, "#ffffff", 8); p.ell(180, 192, 90, 28, "#c9763a", 6); p.ell(150, 182, 30, 12, "#6b9a3a", 4);
   p.poly([[70, 150], [110, 60], [180, 36], [250, 60], [290, 150]], "#d8dde4", 8); p.ell(180, 34, 16, 12, "#b0b6c0", 5);
 };
+
+// ---------------- in-world text (diegetic): boards, headlines, labels, tags, calendar pages ----------------
+export const SIGN_SIZE: Record<string, [number, number]> = { board: [800, 320], news: [600, 800], tag: [420, 300], label: [600, 300], calendar: [400, 480] };
+const SIGN_FONT = '"Baloo 2", "Arial Black", Impact, sans-serif';
+/** fits each line (split on |) to the card width; Turkish capitals are written by the caller (İ Ş Ğ Ü Ö Ç) */
+export const fxSignText = (p: Pen, text: string, style: string, col?: string, ink?: string) => {
+  const g = p.g, [W, H] = SIGN_SIZE[style] ?? SIGN_SIZE.board, lines = text.split("|");
+  const INKC = "#241726", bg = col ?? { board: "#2f6f73", news: "#f2ead6", tag: "#fbf3e0", label: "#f6f1e4", calendar: "#fbf3e0" }[style] ?? "#2f6f73";
+  const fg = ink ?? { board: "#f6e7b4", news: "#241726", tag: "#b2391f", label: "#9a1f12", calendar: "#241726" }[style] ?? "#f6e7b4";
+  const rr = (x: number, y: number, w: number, h: number, r: number) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  g.lineJoin = "round";
+  rr(10, 10, W - 20, H - 20, style === "board" ? 22 : 8); g.fillStyle = bg; g.fill(); g.lineWidth = 12; g.strokeStyle = INKC; g.stroke();
+  let top = 30, bottom = H - 30;
+  if (style === "board") { rr(34, 34, W - 68, H - 68, 14); g.lineWidth = 6; g.strokeStyle = fg; g.stroke(); top = 50; bottom = H - 50; }
+  if (style === "calendar") { g.fillStyle = "#c8432a"; g.fillRect(16, 16, W - 32, 110); g.fillStyle = INKC; for (const x of [W * 0.3, W * 0.7]) { g.beginPath(); g.arc(x, 16, 14, 0, 7); g.fill(); } top = 130; }
+  if (style === "news") { // masthead rule + columns of grey text lines under the headline
+    g.fillStyle = INKC; g.fillRect(40, 40, W - 80, 10); g.fillRect(40, 60, W - 80, 4);
+    for (let i = 0; i < 9; i++) { g.fillStyle = "rgba(36,23,38,.35)"; g.fillRect(40 + (i % 2) * (W / 2 - 20), H * 0.55 + Math.floor(i / 2) * 44, W / 2 - 80, 14); }
+    top = 80; bottom = H * 0.52;
+  }
+  if (style === "tag") { g.beginPath(); g.arc(W / 2, 46, 14, 0, 7); g.fillStyle = INKC; g.fill(); top = 70; }
+  const n = lines.length, lh = (bottom - top) / n;
+  g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = fg;
+  lines.forEach((ln, i) => {
+    let size = Math.min(lh * 0.86, 220);
+    g.font = `800 ${size}px ${SIGN_FONT}`;
+    const m = g.measureText(ln).width; if (m > W - 90) { size *= (W - 90) / m; g.font = `800 ${size}px ${SIGN_FONT}`; }
+    g.fillText(ln, W / 2, top + lh * (i + 0.55));
+  });
+};

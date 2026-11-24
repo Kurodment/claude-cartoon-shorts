@@ -4,8 +4,12 @@
 #       plus a framing report: every actor whose side or head leaves the frame at those frames
 #   python render.py check src/shorts/<name>/spec.ts   (every 2nd frame, no pixels, ~5 s: CUT / OVERLAP / HIDDEN / INSIDE / CARD)
 #   python render.py sheet <CompId> <total> --spec src/shorts/<name>/spec.ts   (auto frames: each shot's middle + every issue)
-#   python render.py final <CompId> <mix.wav> <out.mp4> [--props props.json] [--scale 1.3333333333333333] [--qa]
-#       2K vertical render (1080x1920 x 4/3 = 1440x2560), mux with the mix, optional frame/loudness QA
+#   python render.py preview <CompId> <mix.wav> out/<name>/preview.mp4 [--spec spec.ts]
+#       fast 540x960 render + full-video review sheets (every 0.5 s, 40 frames per sheet) to watch the WHOLE video
+#   python render.py final <CompId> <mix.wav> <out.mp4> --spec src/shorts/<name>/spec.ts [--waive "reason"] [--qa]
+#       hard gates first (CUT OVERLAP INSIDE CAMIN CAMFACE CAPT JITTER must be 0, or --waive with the reason the user
+#       accepted), then the 2K vertical render (1440x2560), mux, QA; the previous file is archived as _vN and
+#       <out>.json records the engine version, date, gates and waiver
 # REMOTION_TMP (a big drive) is used for Remotion's bundle copies of public/.
 import argparse, os, shutil, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -76,13 +80,63 @@ def archive(out):
     while os.path.exists(f"{base}_v{n}{ext}"):
         n += 1
     os.replace(out, f"{base}_v{n}{ext}")
-    for side in ("_qa.txt", "_qa.jpg"):
+    for side in ("_qa.txt", "_qa.jpg", ".json"):
         if os.path.exists(base + side):
             os.replace(base + side, f"{base}_v{n}{side}")
     print(f"archived previous version -> {base}_v{n}{ext}")
 
 
+HARD = ("CUT", "OVERLAP", "INSIDE", "CAMIN", "CAMFACE", "CAPT", "JITTER")
+
+
+def engine_version():
+    import re
+    for p in ("src/shorts/engine/version.ts", os.path.join(HERE, "..", "engine", "version.ts")):
+        if os.path.exists(p):
+            m = re.search(r'"([\d.]+)"', open(p, encoding="utf-8").read())
+            if m:
+                return m.group(1)
+    return "unknown"
+
+
+def gates(spec, waive):
+    os.makedirs("scripts", exist_ok=True)
+    rep, _, _ = run_check(spec)
+    hard = [l for l in rep if l.strip().startswith("shot ") and l.split("  ", 2)[-1].split()[0] in HARD]
+    print("\n".join(rep))
+    if hard and not waive:
+        print(f"GATES FAILED: {len(hard)} hard issue(s). Fix the Spec, or re-run with --waive \"<reason the user accepted>\".")
+        sys.exit(2)
+    return rep, hard
+
+
+def review_sheets(video, base, every=0.5, per=40):
+    """contact sheets of the WHOLE video: one thumbnail every `every` s, `per` per sheet (8 x 5), time stamped"""
+    for old in [f for f in os.listdir(os.path.dirname(base) or ".") if os.path.basename(f).startswith(os.path.basename(base) + "_review")]:
+        os.remove(os.path.join(os.path.dirname(base) or ".", old))
+    # thumbnails left-to-right, top-to-bottom; sheet k, cell i = time (k * per + i) * every seconds
+    vf = f"fps={1 / every},scale=135:240,tile=8x{per // 8}:padding=2:color=white"
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", video, "-vf", vf, "-q:v", "4", f"{base}_review_%02d.jpg"], check=True)
+    out = sorted(f for f in os.listdir(os.path.dirname(base) or ".") if os.path.basename(f).startswith(os.path.basename(base) + "_review"))
+    print("review sheets (look at EVERY one before calling it done): " + ", ".join(os.path.join(os.path.dirname(base), o) for o in out))
+
+
+def preview(a):
+    if a.spec:
+        gates(a.spec, waive="preview")
+    work = os.path.splitext(a.out)[0] + "_video.mp4"
+    npx = shutil.which("npx") or "npx"
+    subprocess.run([npx, "remotion", "render", "src/index.ts", a.comp, work, "--muted", "--codec", "h264", "--crf", "26", "--scale=0.5", "--gl=angle", "--log=error"], check=True, env=env())
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", work, "-i", a.mix, "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest", a.out], check=True)
+    os.remove(work)
+    print(f"-> {a.out} (540x960 preview)")
+    review_sheets(a.out, os.path.splitext(a.out)[0])
+
+
 def final(a):
+    rep, hard = gates(a.spec, a.waive) if a.spec else ([], [])
+    if not a.spec:
+        print("WARNING: no --spec given, the hard gates were not run")
     archive(a.out)
     work = os.path.splitext(a.out)[0] + "_video.mp4"
     npx = shutil.which("npx") or "npx"
@@ -93,6 +147,12 @@ def final(a):
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", work, "-i", a.mix, "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", "-shortest", a.out], check=True)
     os.remove(work)
     print(f"-> {a.out}")
+    import json, datetime
+    json.dump({"comp": a.comp, "engine": engine_version(), "date": datetime.datetime.now().isoformat(timespec="seconds"),
+               "spec": a.spec, "gates": "pass" if not hard else f"{len(hard)} waived", "waive": a.waive, "hard": hard,
+               "camera": next((l for l in rep if l.startswith("camera:")), None)},
+              open(os.path.splitext(a.out)[0] + ".json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(f"engine {engine_version()} stamped -> {os.path.splitext(a.out)[0]}.json")
     if a.qa:
         subprocess.run([sys.executable, os.path.join(HERE, "qa.py"), a.out, os.path.splitext(a.out)[0] + "_qa"], check=False)
 
@@ -102,8 +162,10 @@ def main():
     s = sp.add_parser("sheet"); s.add_argument("comp"); s.add_argument("total", type=int); s.add_argument("--frames"); s.add_argument("--n", type=int, default=15); s.add_argument("--out", default="out/sheet"); s.add_argument("--spec")
     c = sp.add_parser("check"); c.add_argument("spec")
     f = sp.add_parser("final"); f.add_argument("comp"); f.add_argument("mix"); f.add_argument("out"); f.add_argument("--props"); f.add_argument("--scale", default="1.3333333333333333"); f.add_argument("--qa", action="store_true")
+    f.add_argument("--spec"); f.add_argument("--waive")
+    v = sp.add_parser("preview"); v.add_argument("comp"); v.add_argument("mix"); v.add_argument("out"); v.add_argument("--spec")
     a = ap.parse_args()
-    {"sheet": sheet, "final": final, "check": check}[a.cmd](a)
+    {"sheet": sheet, "final": final, "check": check, "preview": preview}[a.cmd](a)
 
 
 if __name__ == "__main__":

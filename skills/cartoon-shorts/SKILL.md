@@ -8,10 +8,14 @@ description: Make a ~60-75 s vertical cartoon story short from an idea at the lo
 A short = `voice.txt` + `src/shorts/<name>/spec.ts` + `sound.json`. The engine (`src/shorts/engine/`) builds sets, cast,
 props, effects, camera, lens, grade and captions from the Spec. **Do not read or rewrite engine files**: everything
 needed is in this file. Talk to the user in their language (Turkish shorts: Turkish narration + captions).
+**Production bible**: `references/production-bible-tr.md` is the channel owner's rule book (story, sound, captions,
+camera, light, gates, review); this file implements it, and the bible wins any conflict. Engine changes are general
+parameters only (never one story's numbers), bump `engine/version.ts` + `engine/CHANGELOG.md`.
 
 ## Token budget (follow strictly)
 - Research: at most 2 `WebSearch` (standard) calls; keep facts + source URLs in `SCRIPT.md`, 1-2 lines each.
-- Never print or read whole JSON / logs / source; scripts print compact summaries. Look at ONE contact sheet per round.
+- Never print or read whole JSON / logs / source; scripts print compact summaries. Look at ONE contact sheet per fix
+  round; before delivery read EVERY review sheet of the preview (the whole video, one frame per 0.5 s).
 - At most 2 fix rounds on the sheet, then render the final. One QA run on the final.
 - Reuse sets / outfits / fx from the libraries below; copy patterns from `example/eroin/spec.ts` and `example/lamartine/spec.ts` (full shorts) and `example/showcase/spec.ts` (every v2 set, one shot each) in this skill instead of inventing.
 - Write each file once with the Write tool; fix with small Edits.
@@ -52,11 +56,12 @@ pauses: voice.py take re-cuts the take with steady 0.28 s gaps), every shot chan
 (the real reveal or the result), never on a weak joke or a hanging sentence; a joke is fine only when it IS the payoff.
 Write with real enthusiasm and light humour: the narrator is fascinated, not reading a template.
 **Story beats**, in order:
-- **HOOK** (5-18 words, a statement): a person named by their role doing the strange action, with one specific number
+- **HOOK** (5-12 words, ONE statement, never a year or "bir zamanlar"): a person named by their role doing the strange action, with one specific number
   ("Genç bir mühendis yepyeni bir demiryolunu her on iki metrede bir kesti."). Never open with Nasıl / Neden / Ne /
   Hiç / Düşünün or a question.
 - **SETUP**: present tense from here on; who is up against whom, where, and what is at stake.
-- **DOUBT**: the boss or a rival laughs - one short mocking line (<= 14 words); the hero does not explain.
+- **DOUBT**: the boss or a rival laughs - short quoted mocking lines in their own voice ("Yeterince bebek arabası ittim.",
+  <= 14 words each, tag them `[mocking]`); the hero does not explain.
 - **ESCALATE**: 2-3 steps over time; the rival seems to win; one small visible clue that the hero is right.
 - **TURN**: the big threat arrives. Optional **deadpan pair** ("Neyse ki X... / Ne yazık ki X...", same framing twice).
 - **REVEAL**: the narrator says "Çünkü" (or "Meğer") + the real mechanism in one plain true sentence, plus an everyday
@@ -88,6 +93,10 @@ Count the words, then show the script + storyboard + the true/invented line + fa
 ("yardır", "tamam", "GO") do everything else without asking.
 
 ## 2. Voice -> words + frame table
+- **Emotion tags**: write ElevenLabs audio tags at the start of lines in `voice.txt` where the tone changes:
+  `[curious]` `[deadpan]` `[conversational]` `[amused]` `[excited]` `[sighs]` `[mocking]` `[sad]` `[mischievously]`
+  `[confident]` (one narrator for the whole channel; doubters' quotes are the same voice with `[mocking]`). Send the
+  tagged text to ElevenLabs; `voice.py` strips the tags for alignment and captions (and for Edge, which would read them).
 - **Default: ElevenLabs** (MCP connected). Reuse the voice already chosen for the channel (Turkish default: "Can Seçkin",
   `rSuyucEH95GpZEfLV0AM`, model `eleven_v4`); otherwise `creative_list_voices` (languages, gender, use_cases) -> pick one
   yourself and say which. `creative_generate_speech` with the joined script, `estimate_only` first (say the credit cost),
@@ -109,8 +118,10 @@ export const spec: Spec = { id, total, words: W,
   flashAt?: frame, xfade?: { [shotNo]: frames }, kicks?: [[frame, 0.4..1.2]],
   dof: [[frame, cInf, glideFrames?]],   // lens blur px at 1080p: wides 0, MS 8-11, CU 12-15
   captions?: [[from, to, y]],           // caption height 0..1 (default 0.7) where the subject sits low/high
-  shots: [{ a: startFrame, set, light?: "day"|"golden", sun?: [az, el], cam: [...], cast?: [...], fx?: [...], props?: [...] }] }
+  shots: [{ a: startFrame, set, light?: "day"|"golden"|"night", sun?: [az, el], cam: [...], cast?: [...], fx?: [...], props?: [...] }] }
 ```
+**Light follows the story**: warm `day` / `golden` for the setup, `night` (deep blue moonlight / storm, lamps glow) for
+the crisis / TURN, back to warm for the REVEAL and BUTTON. Palette: warm orange/red vs teal/blue.
 All positions are metres relative to the shot's set origin; y up, the open side of interiors is +z (camera side).
 - **cam, default = AUTO-FRAMING**: `{ f, frame: { size: wide|full|ms|mcu|cu, on?: [cast idx], pts?: [[x,y,z]] (props /
   fx to keep in), az?: deg around the subjects (0 = from +z, + = from screen right), el?: deg above (5), side?: -1|1
@@ -144,8 +155,8 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   Give every on-screen person a pose or a prop in most shots: standing with hanging arms reads as a freeze.
   **Idle life** is automatic (a slow sway + head tilt on every standing card); `idle: false` for statues. Adults are 1.8 m, face ~1.6 m,
   hands ~1.0 m, a waving hand ~1.9 m at x+0.45. Sitting in a bed: `p: [x, 0.45, z]`, `mode: "sit"`, `shadow: false`.
-  Expressions: neutral stern grin laugh whistle nervous shock relief relief_open dazed pained smile smile_closed snore
-  stubborn squint.
+  Expressions: neutral stern grin laugh whistle nervous (sweat drop) shock relief relief_open dazed pained smile
+  smile_closed snore (Zzz) stubborn squint rage (purple-red face + steam) cry (tear streams).
   Outfits: chemist professor pharmacist doctor doctor2 nurse official guard soldier thief disguise patient patient2-4
   gent lady lady2 man worker worker2-5 king queen sailor captain farmer teacher police merchant girl grandma kid
   tourist tourist2 engineer chef waiter mechanic driver critic
@@ -154,6 +165,10 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   (own outfits may add `hat: "fedora"|"cloche"|"boater"`, `hatCol`, `hatBand`, `glasses: true`, `tie`, `apron`, `dots`)
   (or a full Outfit object; a roleplay "you" = one
   custom Outfit reused in every shot). On a dais/throne: `p: [x, 0.6, z]`, `shadow: false`.
+- **In-world text** (the story's words live IN the world, never as floating titles): `sign {text, style, p, w, col?,
+  ink?, rot?, path?}`; styles `board` (shop / door sign), `news` (headline over grey columns), `tag` (price tag),
+  `label` (jar / box label), `calendar` (red top + big text: "GÜN 1" / "GÜN 2" / "GÜN 3"). `text` lines split with `|`,
+  write Turkish capitals yourself (İ Ş Ğ Ü Ö Ç), 1-4 words. Not for sensitive topics (no text there).
 - **fx** `{ k, ... }`: `cough {f,p,s}` `burst {f,p,s,col,dur}` `puff {f,p,s}` `sparkle {f,dur?,p,s}` `stars {f?,p,s}`
   `shiver {p,s}` `flame {p,s}` `smoke {p: chimney top, f1?: fade, warm?}` `chains {f,dur,p,w,h}` (over a bottle)
   `halo {f,p,s,breakAt?}` `map {f0,f1,p,w,h}` (shipping arcs) `gate {f0,f1,p,w,h}` (bars closing) `ban {f,p,s,flat}`
@@ -222,15 +237,17 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   shopping cart, handle at x -0.62 y 1.0: push it with a `path` and walk the actor behind it), `streetClock`.
 New kinds: add a builder to `engine/sets.ts` + `SET_KINDS` (only when no set fits; tell the user it costs more).
 
-## 4. Sound (`shorts/<name>/sound.json`) - no music unless the user wants it
+## 4. Sound (`shorts/<name>/sound.json`) - the bed NEVER stops
 ```json
-{ "music": null, "ambience": [[0, "shop"], [123, "street"]],
+{ "music": "chill", "ambience": [[0, "shop"], [123, "street"]],
   "cues": [["öksürük", "cough", -10, -0.3], ["yasakladı", "thump", -6, 0, {"f0": 75}], [1864, "creak", -16]] }
 ```
 `at` = frame or word ref (`"word"`, `"word#2"`, `"word+4"`); then kind, dB, pan, {params}. Ambience: shop lab room street
 outdoor harbor crowd none. Cues: cough clink bell shimmer angel whoosh rattle chainWhip thump pop hurrah oof whoa steps run
 creak flutter applause splash tick coins whistle ratchet rain.
-`"music": "chill"` = quiet lo-fi bed 18 LU under the voice. Hit every visual impact with a cue (same frame).
+`"music": "chill"` (default) = lo-fi bed `musicDb` (default 13, range 10-15) dB under the voice for the whole video, plus
+an ambience per set; `"none"` only if the user asks. Master -14.5 LUFS, true peak <= -2 dBTP. Hit every visual impact
+with a cue on the same frame, tucked UNDER the voice (cues are placed inside speech, not only in gaps).
 `python <skill>/scripts/sound.py shorts/<name>/sound.json src/shorts/<name>/words.json shorts/<name>/voice/voice.wav shorts/<name>/audio --total <frames>`
 
 ## 5. Look check -> final
@@ -245,8 +262,17 @@ creak flutter applause splash tick coins whistle ratchet rain.
 1. `python <skill>/scripts/render.py sheet <CompId> <total> --frames <one mid-frame per shot> --out out/<name>/sheet` -> read the ONE image.
    Check: subject framed (not cut at the edge), captions not over a face or the key prop (`captions` override),
    nothing blocking the lens, expressions readable. Fix by editing numbers in the Spec; re-run the sheet for changed shots only.
-2. `python <skill>/scripts/render.py final <CompId> shorts/<name>/audio/mix.wav out/<name>/final.mp4 --qa`
-   (1440x2560, ~2-3 min). QA: no black/frozen frames; the only white frame is `flashAt`; loudness -15 LUFS.
+   **Hard gates** (must be 0 before the final): CUT OVERLAP INSIDE CAMIN (camera in a wall / under the floor) CAMFACE
+   (camera < 0.5 m from a face) CAPT (a face under the captions: move them with `captions`) JITTER (camera jumps > 1.5 px:
+   usually a key that starts before the previous glide landed; start it after `f + dur`, or merge the two keys).
+   Warnings: HIDDEN, CARD, SIZE (> 80 % of the frame). Cartoon magic is never a bug.
+1b. `python <skill>/scripts/render.py preview <CompId> shorts/<name>/audio/mix.wav out/<name>/preview.mp4 --spec <spec.ts>`
+   (540x960, fast) -> review sheets `out/<name>/preview_review_NN.jpg`, 40 thumbnails each, one per 0.5 s. Read ALL of
+   them before the final: props sinking, a camera inside a face, a frozen crowd show only in motion.
+2. `python <skill>/scripts/render.py final <CompId> shorts/<name>/audio/mix.wav out/<name>/final.mp4 --spec <spec.ts> --qa`
+   (1440x2560, ~2-3 min). It refuses while a hard gate fails; `--waive "<reason>"` only with a reason the user accepted
+   (recorded). `out/<name>/final.json` stamps the engine version, date, gates and camera line.
+   QA: no black/frozen frames; the only white frame is `flashAt`; loudness -14..-15 LUFS, LRA ~2-4, true peak <= -2.
    Versions are never lost: an existing final.mp4 is moved to `final_v1.mp4`, `_v2`... before the new render; compare
    versions with numbers (check / camera / QA lines), and the user picks.
 3. Cover: `python <skill>/scripts/cover.py <CompId> <frame> <name> "LINE 1|LINE 2|LINE 3" --hl 1,2` -> `out/<name>/kapak.png`
@@ -281,6 +307,15 @@ Write `out/<name>/prompts.md` instead of (or besides) the engine render, from th
    and style reference." + style sheet + the sentences of the characters in the shot + setting with camera position and
    angle + the literal action of that sentence (only what the camera sees, directions: towards/away, left/right; a number
    in the narration appears written on a prop) + "Sound: ambient sound effects only. No dialogue, no narration, no music."
+
+## Premium round (optional, after v1 is approved; ~100-180k tokens per agent, so ask once)
+When the user wants a version pushed toward premium quality, run specialist agents in parallel, each writing ONLY its
+own files, then merge: SHAPE (engine `toon.ts` / `outfits.ts`), WORLD (`sets.ts` / `town30s.ts` / a new kit file),
+LOOK (`lights.ts` / `grade.ts`), CAMERA = director (strongest model; edits only the video's `spec.ts` cam keys after
+writing a shot list: who stands where, which word each push-in lands on, where the camera travels instead of cutting).
+Simple scans on a lighter model. Then a JUDGE agent scores characters / world / light / camera / logic / overall 1-10
+against `references/story-camera.md`; reject "logic" complaints that are cartoon magic. Every improvement goes into
+the engine (bump the version), never into one video's copy. Keep v1, v2... and compare with numbers.
 
 ## Asset growth + quality ladder (every video)
 - **Every new short adds 2-4 reusable assets** the story needs (a set, a prop, an fx card, an outfit, a sound cue),

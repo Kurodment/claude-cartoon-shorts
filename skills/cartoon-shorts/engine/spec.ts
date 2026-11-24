@@ -59,7 +59,7 @@ export type PropSpec = { k: "bottle" | "flask" | "pillbox" | "bottleShelf" | "cr
   lift?: [number, number][]; color?: string; h?: number; r?: number;
   liquidTo?: { color: string; f: number; dur: number }; path?: [number, number, number, number, number?][]; spin?: number; len?: number; rows?: number[]; yaw?: number };
 export type ShotSpec = {
-  a: number; set: string; light?: "day" | "golden"; sun?: [number, number]; // sun az/el (deg, camera-relative)
+  a: number; set: string; light?: "day" | "golden" | "night"; sun?: [number, number]; // sun az/el (deg, camera-relative)
   cam: CamKey[]; cast?: ActorSpec[]; fx?: FxSpec[]; props?: PropSpec[];
 };
 export type Spec = {

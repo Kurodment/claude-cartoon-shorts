@@ -12,7 +12,7 @@ export type LightPreset = {
   sunCol: string; sunI: number; sky: string; ground: string; hemiI: number;         // three lights (unpatched mats only)
   bias: number; normalBias: number;
 };
-export const LIGHTS: Record<"day" | "golden", LightPreset> = {
+export const LIGHTS: Record<"day" | "golden" | "night", LightPreset> = {
   day: {
     az: 75, el: 48,
     lit: [1.58, 1.5, 1.33], shade: [0.3, 0.29, 0.36], lift: [0.05, 0.06, 0.11], lambert: 0.35, sideK: 0.84, term: 0.2,
@@ -31,6 +31,17 @@ export const LIGHTS: Record<"day" | "golden", LightPreset> = {
     sunCol: "#ffab5e", sunI: 5.5, sky: "#d8b0b8", ground: "#8a6a60", hemiI: 0.5,
     bias: -0.0006, normalBias: 0.03,
   },
+  // night / storm / crisis (light follows the story: warm start -> deep blue crisis -> warm explanation).
+  // Moonlight from the side ~35 deg up, plum-blue shades, characters cooled but readable; emissive lamps bloom.
+  night: {
+    az: 60, el: 35,
+    lit: [0.62, 0.7, 1.05], shade: [0.11, 0.11, 0.26], lift: [0.03, 0.04, 0.13], lambert: 0.35, sideK: 0.8, term: 0.12,
+    charTint: [0.74, 0.8, 1.0], charShade: 0.84, charGrad: 0.1, bodyGrad: 0.25, sideTint: [0.8, 0.82, 1.0],
+    blob: [0.55, 0.55, 0.75], actorShadow: false,
+    top: "#10163a", hor: "#3a4a7e", skyCurve: [0.0, 0.5, 0.8], fog: "#27325e", fogNear: 20, fogFar: 220, sunDisc: "#000000",
+    sunCol: "#a8bcff", sunI: 1.9, sky: "#3a4a7e", ground: "#22243c", hemiI: 0.42,
+    bias: -0.00035, normalBias: 0.02,
+  },
 };
 
 /** world-only look per light (sky stops by elevation in degrees, river colours, cloud palette). All colours are
@@ -42,7 +53,7 @@ export type WorldLook = {
   sat: number;                                                // shade.ts uSat: world albedo saturation (1 = as painted)
   cloud: { lit: string; mid: string; shade: string };
 };
-export const LOOK: Record<"day" | "golden", WorldLook> = {
+export const LOOK: Record<"day" | "golden" | "night", WorldLook> = {
   day: {
     // depth.md 2.2: horizon #9fb6e6 just above the skyline, upper sky #5e93d9 at ~20 deg (grade: frame top #5997e2)
     sky: { c: ["#b8d0ec", "#9cbfea", "#6a9fe0", "#4f8cdb", "#3373cc"], e: [0, 3, 8, 16, 40] },
@@ -59,5 +70,12 @@ export const LOOK: Record<"day" | "golden", WorldLook> = {
     cloud: { lit: "#ffd2a8", mid: "#f2a08f", shade: "#a98fc4" },
     bounce: [0.04, 0.02, 0.0],
     sat: 1.1,
+  },
+  night: {
+    sky: { c: ["#3a4a7e", "#2c3a6c", "#1f2a58", "#161f48", "#0e1434"], e: [0, 4, 10, 20, 40] },
+    water: { near: "#16305a", mid: "#122648", far: "#2a3a6a", crest: "#6a80c0", trough: "#0a1430", glint: "#c8d6ff", shade: [0.36, 0.4, 0.62] },
+    cloud: { lit: "#6a78b0", mid: "#46518a", shade: "#262d5a" },
+    bounce: [0, 0, 0],
+    sat: 0.95,
   },
 };

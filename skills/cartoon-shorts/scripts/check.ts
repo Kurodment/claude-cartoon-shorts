@@ -5,6 +5,12 @@
 //   HIDDEN   a nearer actor covers another actor's face
 //   INSIDE   an actor stands inside a prop or set furniture (desk, table, bench, counter, car, building)
 //   CARD     a static card (guide, paper, tyre, dish...) covers an actor's face
+//   CAMIN    the camera is inside furniture / a building or under the floor          (hard gate)
+//   CAMFACE  the camera is closer than 0.5 m to a face in view                         (hard gate)
+//   CAPT     a face sits under the caption band (move the caption with spec.captions)   (hard gate)
+//   JITTER   the camera path jumps > 1.5 px off its smooth course between frames       (hard gate)
+//   SIZE     one actor fills > 80 % of the frame                                        (warning)
+// Hard gates: CUT OVERLAP INSIDE CAMIN CAMFACE CAPT JITTER must be 0 before render.py final (or waived with a reason).
 // and a CAMERA GRAMMAR line measured like the reference premium shorts (Version Six kit, 03_CAMERA_GRAMMAR): average
 // take length between edits, hard cuts vs dissolves, % of frames the camera moves > 10 %/s and drifts > 2 %/s.
 // Run from the Remotion project root (render.py check does it):  npx tsx scripts/shorts-check.ts src/shorts/<name>/spec.ts
@@ -66,6 +72,17 @@ const main = async () => {
       return { j, i: vis[j]?.i ?? j, who: name(vis[j]?.a.o), p, x0: Math.min(l.x, r.x), x1: Math.max(l.x, r.x), y0: foot.y, y1: top.y, face, depth, fy0: P(p.x, p.y + 1.35 * s, p.z).y };
     }).filter((a: { depth: number }) => a.depth > 0.3);
     const onScreen = (a: { x0: number; x1: number; y0: number; y1: number }) => a.x1 > -1 && a.x0 < 1 && a.y1 > -1 && a.y0 < 1;
+    // caption band (default 70 % height, spec.captions overrides) in NDC y; faces inside it are covered
+    const capY = ((spec as unknown as { captions?: [number, number, number][] }).captions ?? []).find(([a0, a1]) => f >= a0 && f < a1)?.[2] ?? 0.7;
+    const cy = 1 - 2 * capY, hasWords = ((spec as unknown as { words: { s: number; e: number }[] }).words ?? []).some((w) => f >= w.s * 30 - 3 && f <= w.e * 30 + 15);
+    for (const a of acts) {
+      if (!onScreen(a)) continue;
+      const fw = new THREE.Vector3(a.p.x, a.p.y + 1.55 * (a.p.scale ?? 1), a.p.z);
+      if (fw.distanceTo(cam.position) < 0.5) note(si, f, `camface${a.i}`, `CAMFACE camera within 0.5 m of actor ${a.i} (${a.who})'s face`);
+      if (hasWords && Math.abs(a.face.y - cy) < 0.07 && a.face.x > -0.85 && a.face.x < 0.85) note(si, f, `capt${a.i}`, `CAPT    actor ${a.i} (${a.who})'s face is under the captions (set captions y for this range)`);
+      const vis = (Math.min(a.x1, 1) - Math.max(a.x0, -1)) * (Math.min(a.y1, 1) - Math.max(a.y0, -1)) / 4;
+      if (vis > 0.8) note(si, f, `size${a.i}`, `SIZE    actor ${a.i} (${a.who}) fills ${Math.round(vis * 100)} % of the frame (warning)`);
+    }
     for (const a of acts) {
       if (!onScreen(a)) continue;
       if ((a.x0 < -1 && a.x1 > -1) || (a.x1 > 1 && a.x0 < 1) || (a.y1 > 1 && a.y0 < 0.9)) note(si, f, `cut${a.i}`, `CUT     actor ${a.i} (${a.who}) leaves the frame`);
@@ -88,6 +105,14 @@ const main = async () => {
       if (hx === undefined || hz === undefined) continue;
       const [ax, az] = swap ? [hz, hx] : [hx, hz];
       solids.push(rect(pr.k, x - ax, z - az, x + ax, z + az, pr.k === "slab" ? y : 1));
+    }
+    {
+      const cp = cam.position;
+      if (cp.y < 0.05) note(si, f, "camin-floor", "CAMIN   camera under the floor");
+      for (const b of solids) {
+        const inside = b.r !== undefined ? Math.hypot(cp.x - b.cx!, cp.z - b.cz!) < b.r : cp.x > b.x0 && cp.x < b.x1 && cp.z > b.z0 && cp.z < b.z1;
+        if (inside && cp.y < b.top) note(si, f, `camin${b.name}`, `CAMIN   camera inside the ${b.name}`);
+      }
     }
     for (const a of acts) {
       const ax = a.p.x, az = a.p.z, ay = a.p.y;
@@ -118,9 +143,10 @@ const main = async () => {
     sp.shots.forEach((sh) => { cutF.add(sh.a); for (const k of sh.cam) if (k.cut) cutF.add(k.f); });
     const c0 = new THREE.PerspectiveCamera(40, 1080 / 1920, 0.1, 2000), c1 = c0.clone();
     const put = (cm: typeof c0, f: number) => { const sh = spec.shots[D.shotIndexAt(spec, f)], c = D.camAt(spec, O, sh, f); cm.fov = c.fov; cm.position.set(...c.pos); cm.up.set(0, 1, 0); cm.lookAt(...c.look); cm.updateMatrixWorld(); cm.updateProjectionMatrix(); return c; };
-    const sp5: number[] = [];
+    const sp5: number[] = [], vel: ([number, number] | null)[] = [];
+    const kicks = ((spec as unknown as { kicks?: [number, number][] }).kicks ?? []).map(([k]) => k);
     for (let f = 1; f < spec.total; f++) {
-      if (cutF.has(f)) { sp5.push(NaN); continue; }
+      if (cutF.has(f)) { sp5.push(NaN); vel.push(null); continue; }
       put(c0, f - 1); put(c1, f);
       const d0 = new THREE.Vector3(); c0.getWorldDirection(d0);
       const q = c0.position.clone().addScaledVector(d0, Ln).project(c1);
@@ -128,6 +154,14 @@ const main = async () => {
       const d1 = new THREE.Vector3(); c1.getWorldDirection(d1);
       const dolly = Math.log(Ln / Math.max(0.1, Ln - c1.position.clone().sub(c0.position).dot(d1)));
       sp5.push((Math.hypot(q.x / 2, q.y / 2 * (1920 / 1080)) + Math.abs(zoom + dolly) * 0.89) * 100 * FPS);
+      vel.push(kicks.some((k) => f >= k - 1 && f < k + 9) ? null : [q.x / 2 * 1080 + 0, q.y / 2 * 1920 + (zoom + dolly) * 960]);
+    }
+    // JITTER: a frame whose screen motion leaves the smooth line through its neighbours by > 1.5 px
+    for (let i = 1; i + 1 < vel.length; i++) {
+      const a = vel[i - 1], b = vel[i], c = vel[i + 1];
+      if (!a || !b || !c) continue;
+      const dev = Math.hypot(b[0] - (a[0] + c[0]) / 2, b[1] - (a[1] + c[1]) / 2), f = i + 1;
+      if (dev > 1.5) note(D.shotIndexAt(spec, f), f, "jitter", `JITTER  camera jumps ${dev.toFixed(1)} px off its smooth path (glide start / end, key too close)`);
     }
     const med = sp5.map((_, i) => { const w = sp5.slice(Math.max(0, i - 2), i + 3).filter((x) => !isNaN(x)).sort((a, b) => a - b); return w.length ? w[w.length >> 1] : NaN; }).filter((x) => !isNaN(x));
     const pct = (t: number) => Math.round((100 * med.filter((x) => x > t).length) / Math.max(1, med.length));
@@ -135,7 +169,7 @@ const main = async () => {
     console.log(`camera: takes ${hard + soft + 1}, hard cuts ${hard}, dissolves ${soft}, avg take ${asl.toFixed(1)} s, moving>10%/s ${pct(10)} %, drift>2%/s ${pct(2)} %, fast>60%/s ${pct(60)} %` +
       `  (reference: avg take 3.4-5 s, ~1 hard cut, moving 77 %, drift 97 %, fast ~30 %)`);
   }
-  const list = [...issues.values()].filter((e) => e.n >= 2).sort((a, b) => a.shot - b.shot || a.f0 - b.f0);
+  const list = [...issues.values()].filter((e) => e.n >= 2 || e.msg.startsWith("JITTER") || e.msg.startsWith("CAMFACE")).sort((a, b) => a.shot - b.shot || a.f0 - b.f0);
   console.log("shots: " + spec.shots.map((x) => x.a).join(",") + " total " + spec.total);
   if (!list.length) { console.log("check: OK - no cut, overlapping, hidden or clipping actor in any frame"); return; }
   console.log(`check: ${list.length} issue(s) (every 2nd frame of ${spec.total}):`);

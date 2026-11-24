@@ -13,9 +13,14 @@ Each new short fixes one open item and adds 2-4 reusable assets (see SKILL.md "A
       `render.py check` prints a camera-grammar line (takes, hard cuts, dissolves, avg take, % moving / drifting) against
       the reference numbers; SKILL.md plans TAKES instead of one shot per sentence
 - [x] Versions: `render.py final` archives the previous final as `_vN` instead of overwriting
+- [x] Production bible (engine 1.2.0, references/production-bible-tr.md): hard gates CAMIN / CAMFACE / CAPT / JITTER +
+      render refuses until 0 (or a recorded waiver), preview + whole-video review sheets, engine version stamp per video,
+      night light (light follows the story), in-world text signs, rage / cry / Zzz marks, captions ~3 % plain white,
+      bloom <= 0.35, -14.5 LUFS / -2 dBTP with a bed that never stops, emotion tags
 
 ## Open (top = next)
-- [ ] Acting 3/3: run cycle + anticipation/overshoot on actions
+- [ ] Acting 3/3: run cycle + anticipation/overshoot on actions; elbow / knee joints (IK) + GRIP check (hand on a handle)
+- [ ] Look: distance-faded ink, ±10 % colour variation on big surfaces, SSAO contact (bible section 5)
 - [ ] Models: real CC0 / generated 3D models via Blender for hero props and buildings (parked: user does not want Blender for now)
 - [ ] Talking: mouth flaps on the speaking character
 - [ ] Sets: denser dressing (clutter, background extras), second light colour per set

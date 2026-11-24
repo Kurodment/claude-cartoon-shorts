@@ -2,7 +2,7 @@
 // and ink never touch the text). Words come from the voice words.json ([{w, s, e, line?}], seconds), the same timing
 // file the shots and the sound mix are cut to, so captions always land on the spoken word.
 // Look: rounded heavy Baloo 2 (has ç ğ ı İ ö ş ü), white fill + thick near-black ink stroke like the world's lines,
-// the spoken word in yellow, a 4-frame pop when a new group appears. All sizes are specified at 1080x1920.
+// no per-word colour (measured reference: plain white, ~3 % height), a 4-frame pop when a new group appears. All sizes are specified at 1080x1920.
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Baloo2";
@@ -28,8 +28,8 @@ export type CaptionStyle = {
 };
 
 export const CAPTION_DEFAULT: CaptionStyle = {
-  y: 0.7, size: 104, maxWords: 3, maxChars: 18, gap: 0.35, upper: true,
-  fill: "#ffffff", active: "#ffd23f", stroke: "#0b0a0c", strokePx: 14, lead: 0.05, hold: 0.5,
+  y: 0.7, size: 66, maxWords: 3, maxChars: 18, gap: 0.35, upper: true, // size ~3.4 % of the height (measured reference ~3 %)
+  fill: "#ffffff", active: "#ffffff", stroke: "#0b0a0c", strokePx: 10, lead: 0.05, hold: 0.5, // no per-word colouring (reference style)
 };
 
 type Group = { words: Word[]; s: number; e: number };

@@ -90,8 +90,8 @@ export const kickAt = (spec: Spec, f: number) => {
   return a;
 };
 /** measured on premium story shorts (Version Six kit, 03_CAMERA_GRAMMAR): the move ramps up in ~0.3 s, the speed
- *  peaks at ~40 % of the move, then settles more slowly; no linear moves, no hard stops. Speed ~ t^1.3 (1-t)^1.95. */
-const RC_TABLE = (() => { const n = 200, v: number[] = [0]; let s = 0; for (let i = 1; i <= n; i++) { const t = (i - 0.5) / n; s += t ** 1.3 * (1 - t) ** 1.95; v.push(s); } return v.map((x) => x / s); })();
+ *  peaks at ~40 % of the move, then settles more slowly; no linear moves, no hard stops. Speed ~ t^2 (1-t)^3 (smooth start: no frame-to-frame jump > 1.5 px). */
+const RC_TABLE = (() => { const n = 200, v: number[] = [0]; let s = 0; for (let i = 1; i <= n; i++) { const t = (i - 0.5) / n; s += t ** 2 * (1 - t) ** 3; v.push(s); } return v.map((x) => x / s); })();
 const rc = (t: number) => { const x = clamp01(t) * 200, i = Math.min(199, Math.floor(x)); return RC_TABLE[i] + (RC_TABLE[i + 1] - RC_TABLE[i]) * (x - i); };
 const EASE: Record<string, (t: number) => number> = {
   rc, smooth: glide,
@@ -198,6 +198,17 @@ export const FX: Record<string, (c: Ctx, x: FxSpec) => void> = {
     const [cw, ch, draw] = STATIC[x.draw as string];
     const [p, rot] = x.path ? pathAt(x.path, c.f) : [x.p, x.rot ?? 0];
     card(c, x.draw as string, cw, ch, draw, p, x.w ?? 0.3, x.h ?? (0.3 * ch) / cw, { flat: x.flat, rot });
+  },
+  /** in-world (diegetic) text: a sign board, newspaper headline, jar label, price tag or calendar page.
+   *  {text: "GÜN 1" | "SATIR 1|SATIR 2", style: board|news|tag|label|calendar, p, w, col?, ink?, flat?, rot?, path?}.
+   *  The story's words live INSIDE the world (no floating titles); keep it to 1-4 short Turkish words. */
+  sign: (c, x) => {
+    if (!live(c, x)) return;
+    const text = String(x.text ?? ""), style = String(x.style ?? "board"), [cw, ch] = E.SIGN_SIZE[style] ?? E.SIGN_SIZE.board;
+    const [p, rot] = x.path ? pathAt(x.path, c.f) : [x.p, x.rot ?? 0];
+    const w = x.w ?? 0.8;
+    card(c, `sign|${style}|${x.col ?? ""}|${x.ink ?? ""}|${text}`, cw, ch, (pen) => E.fxSignText(pen, text, style, x.col as string | undefined, x.ink as string | undefined),
+      p, w, x.h ?? (w * ch) / cw, { flat: x.flat, rot });
   },
 };
 

@@ -1,6 +1,6 @@
 # Sound for a short from sound.json: room tones per stretch of the film + synthesized SFX cues locked to words, an optional
-# quiet lo-fi bed ("music": "chill"), voice unchanged, SFX peaks 6 dB under the voice's loudest moment, master -15 LUFS,
-# look-ahead limiter -1.2 dBTP. Writes mix.wav, stem_voice.wav, stem_sfx.wav (+ stem_music.wav) next to --out.
+# lo-fi bed always on ("music": "chill" default, 13 dB under the voice; "none" to drop it), voice unchanged, SFX peaks
+# 6 dB under the voice's loudest moment, master -14.5 LUFS, look-ahead limiter, true peak <= -2 dBTP. Writes mix.wav, stem_voice.wav, stem_sfx.wav (+ stem_music.wav) next to --out.
 #   python sound.py <sound.json> <words.json> <voice.wav> <out_dir> --total <frames>
 # sound.json: {"ambience": [[at, kind], ...], "cues": [[at, kind, db, pan, {params}], ...], "music": null | "chill"}
 #   at = frame number or word reference "word", "word#2" (2nd occurrence), "word+4" / "word#2-6" (frame offset)
@@ -219,15 +219,17 @@ def main():
     voice = np.zeros((2, N)); vv = st(v)[:, :N]; voice[:, : vv.shape[1]] = vv
     sfx *= dbg(momentary_max(voice) - momentary_max(sfx) - 6.0)
     music = np.zeros((2, N))
-    if S.get("music") == "chill":
-        music = chill(dur)[:, :N]; music *= dbg(integrated(voice) - 18.0 - integrated(music))
+    # the bed NEVER stops (0 % silence): chill music by default, 10-15 dB under the voice ("musicDb", default 13);
+    # "music": "none" only when the user asks for no music
+    if S.get("music", "chill") == "chill":
+        music = chill(dur)[:, :N]; music *= dbg(integrated(voice) - float(S.get("musicDb", 13.0)) - integrated(music))
     mix = voice + sfx + music
-    g = dbg(-15.0 - integrated(mix)); mix, voice, sfx, music = mix * g, voice * g, sfx * g, music * g
-    out = limiter(mix); tp = true_peak(out)
-    if tp > -1.0:
-        out *= dbg(-1.0 - tp)
+    g = dbg(-14.5 - integrated(mix));  # YouTube: -14..-15 LUFS, true peak <= -2 dBTP mix, voice, sfx, music = mix * g, voice * g, sfx * g, music * g
+    out = limiter(mix, ceil_db=-2.4); tp = true_peak(out)
+    if tp > -2.0:
+        out *= dbg(-2.0 - tp)
     os.makedirs(a.out, exist_ok=True)
-    for name, x in [("mix.wav", out), ("stem_voice.wav", voice), ("stem_sfx.wav", sfx)] + ([("stem_music.wav", music)] if S.get("music") else []):
+    for name, x in [("mix.wav", out), ("stem_voice.wav", voice), ("stem_sfx.wav", sfx)] + ([("stem_music.wav", music)] if S.get("music", "chill") == "chill" else []):
         write_wav(os.path.join(a.out, name), x)
     print(f"mix {integrated(out):.1f} LUFS, true peak {true_peak(out):.2f} dBTP, {N / SR:.2f} s | sfx {integrated(sfx):.1f} LUFS -> {a.out}")
 

@@ -36,6 +36,12 @@ python <skill>/scripts/setup.py install
 Libraries: 15 sets (lab, shop, ward, street + factory, brain castle, capitol, bathroom, office, kitchen, harbour +
 steamship, palace, meadow, 1850s mud town, 1930s grocery, 1930s downtown), liftable buildings on jacks, 57 outfits, 14 expressions, 24 effect kinds, 7 prop kinds, 24 sound cues, 8 room tones. `example/eroin/` is a complete 21-shot short.
 
+## Rules
+
+`skills/cartoon-shorts/references/production-bible-tr.md` is the channel's production bible (Turkish): story
+formula, sound and caption standards, camera grammar, light, per-frame hard gates and review rules, each mapped to the
+engine feature that enforces it. Engine version: `engine/version.ts`, history in `engine/CHANGELOG.md`.
+
 ## Requirements
 
 Node + Remotion 4, Python 3.10+ (numpy, scipy, pillow, edge-tts, faster-whisper; GPU optional), ffmpeg.
