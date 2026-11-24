@@ -23,6 +23,10 @@ Set `REMOTION_TMP` to a big drive (every bundle copies `public/`). Run every com
 ## 1. Idea -> facts -> script (one message to the user for approval)
 **Length** (ask together with the script only if the user did not say; Turkish narration runs ~2.3 words/s):
 30 s ≈ 70 words / 7-8 shots, 45 s ≈ 105 words / 10-12 shots, 60-72 s ≈ 145-165 words / 14-20 shots.
+**Topic filter (viewer psychology)**: Shorts viewers want a quick "now I feel smart" hit. Pick stories that look absurd
+at first and turn out brilliant once explained (business tricks, psychology, hidden systems, clever engineering).
+Avoid dark or hopeless topics (death tolls, disasters, "how bad things are"); a sensitive topic only if the user asks.
+Prefer topics that already did well elsewhere (long-form videos, other platforms): say in one line why it has demand.
 **No topic?** Give 10 ideas in one message, ranked by story type, best first:
 A) hidden-physics underdog (someone does something that looks stupid, everyone mocks them, a real principle proves them
 right), B) a weird real experiment or institution, C) a clever scheme or loophole with a twist. Never a "what if"
@@ -30,7 +34,22 @@ fantasy or a plain explainer without a main character. Per idea: a 4-8 word titl
 / "[İmkânsız Şeyi Yapan] [Nesne]"), a one-line hook, the true fact underneath. Then the user picks a number.
 **Before the script**, one line: what is true and what is invented (unnamed doubters and rivals may be invented; facts
 and real people's words may not - never put an invented quote in a real person's mouth).
-**Beats**, in order:
+**Two structures** (pick one and say which; the user may ask for either):
+- **Story (3rd person)**: the beats below. Best for a hero / underdog with doubters.
+- **Roleplay (2nd person)**: best for business, strategy and "how did they solve it" topics.
+  1. HOOK: put the viewer in the role with personal stakes in the first sentence: "Devasa bir kahve şirketisin ve
+     ülkede kimse kahve içmiyor." + what they lose if they fail ("Bunu çözemezsen batarsın.").
+  2. Solve it step by step as a puzzle the viewer is working out ("İlk hamlen...", "Ama bir sorun var...", "Sonra...");
+     each step = one visible action and its result.
+  3. PAYOFF: the whole trick is clear, then the last sentence reveals the real identity / result ("Ve bunu tarihte
+     gerçekten yapan şirket Nescafé'ydi."). The real name is held back until this sentence.
+  The viewer's role is a character on screen (a neutral outfit, the same one in every shot).
+**Retention rules (both structures)**: the first sentence (~2 s) states the stakes, i.e. why the viewer should care,
+not just a surprising number. No intro, no slow transition, no empty pause: sentences follow each other directly (voice
+pauses: voice.py take re-cuts the take with steady 0.28 s gaps), every shot change lands on a cue (whoosh / pop / thump). End on the payoff
+(the real reveal or the result), never on a weak joke or a hanging sentence; a joke is fine only when it IS the payoff.
+Write with real enthusiasm and light humour: the narrator is fascinated, not reading a template.
+**Story beats**, in order:
 - **HOOK** (5-18 words, a statement): a person named by their role doing the strange action, with one specific number
   ("Genç bir mühendis yepyeni bir demiryolunu her on iki metrede bir kesti."). Never open with Nasıl / Neden / Ne /
   Hiç / Düşünün or a question.
@@ -50,8 +69,11 @@ place or a number on a prop; a viewer hearing it once always knows where we are 
   (on screen: a prop, a `coins` / `clock` fx, a count of characters). Prefer "o zamanlar" to years unless the year is the hook.
 - Numbers as words. No intro, channel name, moral, question to the viewer or call to action.
 - Sensitive topics (drugs, violence): history/explanation only, never show use; no text anywhere in the picture.
-Count the words, then show the script + the true/invented line + facts with sources once; on approval ("yardır",
-"tamam", "GO") do everything else without asking.
+**Storyboard** (shown with the script, one row per sentence, so every line has its own moving picture; no static
+slides, no stock-like filler): `| # | beat | sentence | set + shot (who/what is seen) | camera move | fx + SFX |`.
+Camera move = cut / glide / push-in / punch / pan; the style stays the engine's cartoon look in every row.
+Count the words, then show the script + storyboard + the true/invented line + facts with sources once; on approval
+("yardır", "tamam", "GO") do everything else without asking.
 
 ## 2. Voice -> words + frame table
 - **Default: ElevenLabs** (MCP connected). Reuse the voice already chosen for the channel (Turkish default: "Can Seçkin",
