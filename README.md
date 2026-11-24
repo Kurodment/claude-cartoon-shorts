@@ -32,8 +32,8 @@ python <skill>/scripts/setup.py install
 | Final | `render.py final --qa` | 1440×2560 mp4, QA summary |
 | Another narrator | `revoice.py` | same picture, new voice (~15 s + render) |
 
-Libraries: 12 sets (lab, shop, ward, street + factory, brain castle, capitol, bathroom, office, kitchen, harbour +
-steamship, palace, meadow), 38 outfits, 14 expressions, 24 effect kinds, 7 prop kinds, 21 sound cues, 8 room tones. `example/eroin/` is a complete 21-shot short.
+Libraries: 13 sets (lab, shop, ward, street + factory, brain castle, capitol, bathroom, office, kitchen, harbour +
+steamship, palace, meadow, 1850s mud town), liftable buildings on jacks, 38 outfits, 14 expressions, 24 effect kinds, 7 prop kinds, 24 sound cues, 8 room tones. `example/eroin/` is a complete 21-shot short.
 
 ## Requirements
 

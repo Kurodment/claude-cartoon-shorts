@@ -107,6 +107,12 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   Every kind takes `until` (and `f` = from). Effects face the camera unless `flat`.
 - **props** `{ k: bottle|flask|pillbox|bottleShelf|crate|books|coins, p, color?, h?, r?, liquidTo?: {color,f,dur}, path?, spin?, yaw?, len?, rows? }`.
   Bottles have a blank paper label (no text); flasks show their liquid through the glass.
+  Big props (example/chicago): `building {p, len: width, h, d, seed 0-4 (brick/cream/ochre/grey/sand), lift?: [[f, m]...], steps?, jacks?}`
+  (front faces +z; `lift` raises the body on jackscrews, `steps` stretch from the ground to the door; actors standing
+  in the doorway: `p: [x, lift + 0.3, front z + 0.15]`, `shadow: false`), `logs {len, rows: n}` (rollers along x),
+  `pipe {len, r}` (along x), `car {color, lift}` (a jack tilts the front-right corner, a spare wheel lies beside),
+  `slab {len, d, path}` (a mud block whose top is its y: raise it with `path` to bury a pipe / raise a street).
+  A stepwise lift ("turn by turn"): keys `[f0+i*every+2, m0+dm*i], [f0+i*every+8, m0+dm*(i+1)]`.
 
 ### Set library (coordinates relative to the set origin)
 - **lab** (1890s): back wall z -4 (windows x ±3.6, shelves x ±2.4 at y 1.75/2.45/3.15), bench z -3.5 top .95,
@@ -134,6 +140,9 @@ All positions are metres relative to the shot's set origin; y up, the open side 
 - **palace** (kings, courts): chequered floor, red walls + gold trim, throne on a dais (seat (0, 0.6, -3)), red carpet
   along x 0 toward +z, columns x ±3.6 at z -2.5/0.5/3.5, blue banners. Camera (0, 1.9, 6.5) -> (0, 1.5, -2.6).
 - **meadow** (outdoor analogies, countryside): grass to the horizon, hills, oaks, flowers, a dirt path x ±1.2 along +z.
+- **mudTown** (1850s town, Wild West, floods): muddy street with puddles (open x ±6), plank sidewalks x ±6.2..8.6,
+  house rows at x ±13.5 from z -36 to 60, lanterns, a cart (4.2, 22), a lake for z < -60 (water y -0.4). Put building
+  props in the street at z -6 (small) / -12 (tall); establishing: camera (0, 10, 44) -> (0, 2, -10).
 New kinds: add a builder to `engine/sets.ts` + `SET_KINDS` (only when no set fits; tell the user it costs more).
 
 ## 4. Sound (`shorts/<name>/sound.json`) - no music unless the user wants it
@@ -143,7 +152,7 @@ New kinds: add a builder to `engine/sets.ts` + `SET_KINDS` (only when no set fit
 ```
 `at` = frame or word ref (`"word"`, `"word#2"`, `"word+4"`); then kind, dB, pan, {params}. Ambience: shop lab room street
 outdoor harbor crowd none. Cues: cough clink bell shimmer angel whoosh rattle chainWhip thump pop hurrah oof whoa steps run
-creak flutter applause splash tick coins.
+creak flutter applause splash tick coins whistle ratchet rain.
 `"music": "chill"` = quiet lo-fi bed 18 LU under the voice. Hit every visual impact with a cue (same frame).
 `python <skill>/scripts/sound.py shorts/<name>/sound.json src/shorts/<name>/words.json shorts/<name>/voice/voice.wav shorts/<name>/audio --total <frames>`
 
@@ -198,4 +207,6 @@ Each sentence lands where the reference voice said it (sped up ≤ 1.15 if neede
 - Captions are word-by-word, 70 % height: move them (`captions`) for table/desk close-ups where the subject sits there.
   Long words shrink by themselves to fit the width (CUMHURBAŞKANLIĞINA used to run off both edges).
 - Sheet frames: pick one frame AFTER each glide lands (key `f` + `dur`), not only mid-shot: most cut-off actors show there.
+- `render.py sheet` also prints a **framing report** (every actor whose side or head leaves the frame at the sheet frames).
+  Fix every line it lists before the final (an intentional exit/entry walk may stay); my first guesses were cut ~30 % of the time.
 - Whisper reads long takes with context: check a doubtful word by transcribing that sentence alone.

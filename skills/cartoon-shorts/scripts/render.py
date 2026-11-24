@@ -1,6 +1,7 @@
 # Look checks and the final render, from the Remotion project root.
 #   python render.py sheet <CompId> <total_frames> [--frames 30,280,...] [--n 15] [--out out/<name>/sheet]
-#       stills at half size (one per shot or --n evenly spaced) -> ONE contact sheet image <out>.jpg to review
+#       stills at half size (one per shot or --n evenly spaced) -> ONE contact sheet image <out>.jpg to review,
+#       plus a framing report: every actor whose side or head leaves the frame at those frames
 #   python render.py final <CompId> <mix.wav> <out.mp4> [--props props.json] [--scale 1.3333333333333333] [--qa]
 #       2K vertical render (1080x1920 x 4/3 = 1440x2560), mux with the mix, optional frame/loudness QA
 # REMOTION_TMP (a big drive) is used for Remotion's bundle copies of public/.
@@ -22,7 +23,11 @@ def sheet(a):
     e = env(); e["COMP"] = a.comp
     # node resolves packages from the script's folder: run a copy inside the project
     os.makedirs("scripts", exist_ok=True); shutil.copy(os.path.join(HERE, "stills.mjs"), "scripts/shorts-stills.mjs")
-    subprocess.run(["node", "scripts/shorts-stills.mjs", a.out + "_", ",".join(map(str, frames)), "0.5"], check=True, env=e)
+    r = subprocess.run(["node", "scripts/shorts-stills.mjs", a.out + "_", ",".join(map(str, frames)), "0.5"], env=e, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if r.returncode:
+        print(r.stdout[-3000:], r.stderr[-3000:]); sys.exit(r.returncode)
+    cut = sorted({l.split("[frame] ", 1)[1].split(" (")[0] for l in r.stdout.splitlines() if "[frame]" in l})
+    print("framing: OK, no actor cut at a frame edge" if not cut else "framing: CUT ACTORS (move them toward the look line or pull the camera back):\n  " + "\n  ".join(cut))
     from PIL import Image
     cols = 5 if len(frames) > 8 else 4
     rows = (len(frames) + cols - 1) // cols

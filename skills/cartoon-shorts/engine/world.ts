@@ -12,7 +12,7 @@ import { NOINK } from "./ink";
 import { Pool, Actor, Fx } from "./cards";
 import { Spec, V3, FPS, PropSpec } from "./spec";
 import { camAt, stage, shotEnd, smooth, pathAt } from "./direct";
-import { SET_KINDS, flask, bottle, aspirinBox, shelfRowExport, crateProp, booksProp, coinsProp } from "./sets";
+import { SET_KINDS, flask, bottle, aspirinBox, shelfRowExport, crateProp, booksProp, coinsProp, buildingProp, logsProp, pipeProp, carProp, slabProp } from "./sets";
 
 const KENNEY = ["tree_oak", "tree_default", "flower_redA", "flower_yellowA", "lantern", "cart", "stall-green"];
 let kitP: Promise<Kit> | null = null;
@@ -97,6 +97,11 @@ export class World {
       else if (p.k === "crate") obj = crateProp(p.h ?? 1);
       else if (p.k === "books") obj = booksProp(p.rows?.length ?? 5);
       else if (p.k === "coins") obj = coinsProp();
+      else if (p.k === "building") obj = buildingProp(p.len ?? 8, p.h ?? 7, p.d ?? 7, p.seed ?? pi, p.jacks ?? !!p.lift, p.steps ?? false);
+      else if (p.k === "logs") obj = logsProp(p.rows?.length ?? 5, p.len ?? 6);
+      else if (p.k === "pipe") obj = pipeProp(p.len ?? 8, p.r ?? 0.35);
+      else if (p.k === "car") obj = carProp(p.color);
+      else if (p.k === "slab") obj = slabProp(p.len ?? 10, p.d ?? 3);
       else { const g = new THREE.Group(), b = new Batch(); for (const y of p.rows ?? [0]) shelfRowExport(b, [0, 0, 0], 0, p.len ?? 2, y, 0, 9, p.color); b.build(g); obj = g; }
       obj.position.set(o[0] + p.p[0], o[1] + p.p[1], o[2] + p.p[2]); obj.rotation.y = p.yaw ?? 0; obj.visible = false; R.add(obj);
       this.props.push({ obj, shot: si, spec: p, liq, c0: liq ? new THREE.Color(p.color ?? "#3a6fb0") : undefined });
@@ -125,10 +130,21 @@ export class World {
   private fx(i: number) { while (this.fxs.length <= i) this.fxs.push(new Fx(this.root)); return this.fxs[i]; }
 
   private poseProps(id: number, f: number) {
+    const liftAt = (k: [number, number][], f: number) => {
+      if (f <= k[0][0]) return k[0][1];
+      for (let i = 1; i < k.length; i++) if (f < k[i][0]) { const t = (f - k[i - 1][0]) / (k[i][0] - k[i - 1][0]); return k[i - 1][1] + (k[i][1] - k[i - 1][1]) * smooth(t); }
+      return k[k.length - 1][1];
+    };
     for (const p of this.props) {
       p.obj.visible = p.shot === id;
       if (!p.obj.visible) continue;
       if (p.spec.path) { const [q, rz] = pathAt(p.spec.path, f), o = this.origins[this.spec.shots[id].set]; p.obj.position.set(o[0] + q[0], o[1] + q[1], o[2] + q[2]); p.obj.rotation.z = rz; }
+      if (p.spec.lift) {
+        const L = liftAt(p.spec.lift, f), u = p.obj.userData as { body: THREE.Object3D; screws: THREE.Mesh[]; steps: THREE.Object3D | null; tilt?: boolean };
+        if (u.tilt) { u.body.position.y = L * 0.3; u.body.rotation.z = L * 0.15; u.body.rotation.x = -L * 0.15; } else u.body.position.y = L;
+        for (const sc of u.screws) sc.scale.y = Math.max(L + 0.16, 0.001);
+        if (u.steps) u.steps.scale.y = Math.max(L + 0.3, 0.001);
+      }
       if (p.spec.spin) p.obj.rotation.y = (p.spec.yaw ?? 0) + p.spec.spin * Math.sin(f / 40);
       if (p.liq && p.c0 && p.spec.liquidTo) p.liq.color.copy(p.c0).lerp(new THREE.Color(p.spec.liquidTo.color), smooth((f - p.spec.liquidTo.f) / p.spec.liquidTo.dur));
     }
@@ -196,6 +212,12 @@ export class World {
       a.mesh.scale.set(p.mirror ? -sc2 : sc2, sc2, sc2);
       a.mesh.castShadow = L.actorShadow;
       used.push(a);
+      // framing check (look-check stills print it): an actor whose side or head leaves the frame
+      {
+        const ndc = (dx: number, dy: number) => this.v.set(p.x + right.x * dx, p.y + dy, p.z + right.z * dx).project(cam);
+        const l = ndc(-0.38 * sc2, 1.0 * sc2).x, r = ndc(0.38 * sc2, 1.0 * sc2).x, top = ndc(0, 1.85 * sc2).y;
+        if ((l < -1 && r > -1) || (r > 1 && l < 1) || (top > 1 && ndc(0, 0.2).y < 1)) console.warn(`[frame] shot ${id + 1} f${f} actor ${ai - 1} cut (${l.toFixed(2)}..${r.toFixed(2)}, head ${top.toFixed(2)})`);
+      }
     }
     for (let i = ai; i < this.actors.length; i++) this.actors[i].mesh.visible = false;
     let fi = 0;

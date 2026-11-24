@@ -108,7 +108,31 @@ CUES = {
     "splash": lambda r, p: G.splash_big(r),
     "tick": lambda r, p: steps_tick(r, p.get("n", 8)),                          # clock ticking
     "coins": lambda r, p: coins(r, p.get("n", 9)),
+    "whistle": lambda r, p: whistle(r, p.get("dur", 0.45), p.get("f", 2900)),   # foreman / referee whistle
+    "ratchet": lambda r, p: ratchet(r, p.get("n", 6)),                          # jackscrew / wrench turning
+    "rain": lambda r, p: rain(r, p.get("dur", 3.0)),                            # a shower (cloud fx)
 }
+
+
+def whistle(r, dur, f):
+    t = tt(dur)
+    fr = f * (1 + 0.035 * np.sign(np.sin(2 * np.pi * 28 * t)))  # pea-whistle trill
+    y = np.sin(phase(fr)) * 0.8 + bp(r.standard_normal(len(t)), f * 0.8, f * 1.3, 1) * 0.25
+    return fades(y * (1 - np.exp(-t / 0.01)), 0.005, 0.06)
+
+
+def ratchet(r, n):
+    y = np.zeros(ns(n * 0.07 + 0.2))
+    for k in range(n):
+        x = G.clink(r, r.uniform(1500, 1900), 0.05, 0.5); i0 = ns(k * 0.07); y[i0:i0 + len(x)] += x[: len(y) - i0]
+    return y
+
+
+def rain(r, dur):
+    y = bp(r.standard_normal(ns(dur)), 900, 7000, 1) * 0.35
+    for _ in range(int(dur * 40)):
+        x = G.clink(r, r.uniform(2500, 6000), 0.02, 0.2); i0 = r.integers(0, len(y) - len(x)); y[i0:i0 + len(x)] += x * r.uniform(0.2, 0.6)
+    return fades(y, 0.3, 0.6)
 
 
 def steps_tick(r, n):

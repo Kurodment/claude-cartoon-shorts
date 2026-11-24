@@ -505,15 +505,109 @@ export const buildMeadow = (kit: Kit, o: V3) => {
   return g;
 };
 
+// ---------------- mud town (1850s Chicago): muddy street, plank sidewalks, wooden/brick rows, the lake behind ----------------
+const mudTex = () => ctex("mudTex", 512, 512, (g, r) => {
+  g.fillStyle = "#8a6a46"; g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 320; i++) { g.fillStyle = r() > 0.5 ? "rgba(70,48,30,0.30)" : "rgba(170,135,95,0.22)"; g.beginPath(); g.ellipse(r() * 512, r() * 512, 6 + r() * 38, 3 + r() * 14, r() * 3, 0, 7); g.fill(); }
+  for (let i = 0; i < 9; i++) {
+    const x = r() * 512, y = r() * 512, a = 22 + r() * 46;
+    g.fillStyle = "rgba(60,42,28,0.55)"; g.beginPath(); g.ellipse(x, y, a + 6, a * 0.42 + 5, 0, 0, 7); g.fill();
+    g.fillStyle = "#7f97a6"; g.beginPath(); g.ellipse(x, y, a, a * 0.42, 0, 0, 7); g.fill();
+    g.fillStyle = "rgba(255,255,255,0.35)"; g.fillRect(x - a * 0.4, y - 3, a * 0.5, 3);
+  }
+  for (let i = 0; i < 40; i++) { g.strokeStyle = "rgba(50,34,22,0.45)"; g.lineWidth = 3; g.beginPath(); const x = r() * 512, y = r() * 512; g.moveTo(x, y); g.lineTo(x + 30 + r() * 60, y + (r() - 0.5) * 8); g.stroke(); }
+});
+/** street along z (open x -6..6), plank sidewalks at x ±6.2..8.6, house rows at x ±13.5 from z -36 to 60, lake for z < -60 */
+export const buildMudTown = (kit: Kit, o: V3) => {
+  const g = new THREE.Group(), b = new Batch(), mud = lam("mudTex", () => ({ map: mudTex() })), plank = lam("planksHD", () => ({ map: planksHD() }));
+  floor(b, o, -150, -60, 150, 120, mud, 6);
+  floor(b, o, -300, -300, 300, -60, lam("lakeWater", () => ({ map: rep(water(), 30, 30) })), 6, -0.4);
+  box(b, o, -8.6, 0, -40, -6.2, 0.22, 80, plank, 2); box(b, o, 6.2, 0, -40, 8.6, 0.22, 80, plank, 2);
+  for (let i = 0; i < 9; i++) {
+    const z = -36 + i * 12;
+    house(b, o[0] - 13.5, o[2] + z, Math.PI / 2, 9, 8, 7.5 + (i % 3) * 1.6, i, 0);
+    house(b, o[0] + 13.5, o[2] + z + 4, -Math.PI / 2, 9, 8, 7.2 + ((i + 1) % 3) * 1.6, i + 3, 0);
+  }
+  for (const s of [-1, 1]) for (let i = 0; i < 6; i++) prop(b, kit, "lantern", o[0] + s * 7.6, 0.22, o[2] - 30 + i * 13, 3.2);
+  prop(b, kit, "cart", o[0] + 4.2, 0, o[2] + 22, 2.2, 0.5);
+  b.build(g);
+  return g;
+};
+
+// ---------------- liftable props: a building on jackscrews, rolling logs, a sewer pipe, a car on a jack, a soil slab ----------------
+const FAC = [{ wall: "#b5583c", shutter: "#3a3f48", brick: true }, { wall: "#d8c49a", shutter: "#2f5f6a" }, { wall: "#c98a4a", shutter: "#5a3b2a" },
+  { wall: "#9aa3a8", shutter: "#8c2f3c" }, { wall: "#e3d2b0", shutter: "#3f6fb5" }];
+const iron = () => lam("jackIron", () => ({ color: "#3a3f48" }));
+/** jackscrew: static foot + a screw scaled to the lift (collected in screws) */
+const addJack = (g: THREE.Group, screws: THREE.Mesh[], x: number, z: number) => {
+  const foot = new THREE.Mesh(cylG(0.16, 0.12, 0.14, 10), iron()); foot.position.set(x, 0, z); g.add(foot);
+  const sc = new THREE.Mesh(cylG(0.055, 0.055, 1, 8), lam("jackScrew", () => ({ color: "#8a8f98" }))); sc.position.set(x, 0.14, z); sc.scale.y = 0.001; g.add(sc); screws.push(sc);
+};
+export const buildingProp = (w: number, h: number, d: number, seed: number, jacks = true, steps = false) => {
+  const g = new THREE.Group(), body = new THREE.Group(), b = new Batch(), st = FAC[seed % FAC.length], O: V3 = [0, 0, 0];
+  const front = lam(`bf${seed}_${w}_${h}`, () => ({ map: facadeHD(`bf${seed}_${w}_${h}`, w, h, { ...st, door: true }) }));
+  const side = lam(`bs${seed}_${d}_${h}`, () => ({ map: facadeHD(`bs${seed}_${d}_${h}`, d, h, st) }));
+  const trim = lam("bTrim", () => ({ color: "#4a3a32" })), stone = lam("stoneCap", () => ({ map: stoneHD() }));
+  box(b, O, -w / 2, 0.14, -d / 2, w / 2, h, d / 2, side);
+  b.add(new THREE.PlaneGeometry(w, h - 0.14).translate(0, (h + 0.14) / 2, d / 2 + 0.01), front);
+  box(b, O, -w / 2 - 0.18, h, -d / 2 - 0.18, w / 2 + 0.18, h + 0.4, d / 2 + 0.18, trim);
+  box(b, O, -w / 2 - 0.05, 0, -d / 2 - 0.05, w / 2 + 0.05, 0.3, d / 2 + 0.05, stone, 1);
+  b.build(body); g.add(body);
+  const screws: THREE.Mesh[] = [];
+  if (jacks) {
+    for (let x = -w / 2 + 0.35; x <= w / 2 - 0.3; x += 0.85) addJack(g, screws, x, d / 2 - 0.25);
+    for (const s of [-1, 1]) for (let z = -d / 2 + 0.5; z < d / 2 - 0.6; z += 1.1) addJack(g, screws, s * (w / 2 - 0.25), z);
+  }
+  let stepsG: THREE.Group | null = null;
+  if (steps) {
+    stepsG = new THREE.Group(); const sb = new Batch(), wood = lam("stepWood", () => ({ color: "#a8784a" }));
+    for (let i = 0; i < 6; i++) box(sb, O, -0.8, 0, d / 2 + 0.02 + i * 0.22, 0.8, 1 - i / 6, d / 2 + 0.24 + i * 0.22, wood);
+    sb.build(stepsG); stepsG.scale.y = 0.001; g.add(stepsG);
+  }
+  g.traverse((m) => { if ((m as THREE.Mesh).isMesh) m.castShadow = m.receiveShadow = true; });
+  g.userData = { body, screws, steps: stepsG };
+  return g;
+};
+export const logsProp = (n = 5, len = 6) => {
+  const g = new THREE.Group(), b = new Batch(), wood = lam("logWood", () => ({ color: "#9a6a3e" }));
+  for (let i = 0; i < n; i++) b.add(new THREE.CylinderGeometry(0.17, 0.17, len, 12).rotateX(Math.PI / 2), wood, M(-(n - 1) * 0.55 + i * 1.1, 0.17, 0));
+  b.build(g); return g;
+};
+export const pipeProp = (len = 8, r = 0.35) => {
+  const g = new THREE.Group(), b = new Batch(), clay = lam("pipeClay", () => ({ color: "#b0603a" }));
+  b.add(new THREE.CylinderGeometry(r, r, len, 20).rotateZ(Math.PI / 2), clay, M(0, r, 0));
+  for (let x = -len / 2 + 1; x < len / 2; x += 2) b.add(new THREE.CylinderGeometry(r * 1.12, r * 1.12, 0.18, 20).rotateZ(Math.PI / 2), clay, M(x, r, 0));
+  b.build(g); return g;
+};
+export const carProp = (col = "#c8323a") => {
+  const g = new THREE.Group(), body = new THREE.Group(), b = new Batch(), O: V3 = [0, 0, 0];
+  const paint = lam("car" + col, () => ({ color: col })), glass = lam("carGlass", () => ({ color: "#9fc4d8" })), tyre = lam("tyre", () => ({ color: "#222026" })), hub = lam("hub", () => ({ color: "#c9ccd2" }));
+  box(b, O, -1.9, 0.32, -0.82, 1.9, 0.95, 0.82, paint); box(b, O, -1.0, 0.95, -0.74, 0.9, 1.5, 0.74, paint);
+  box(b, O, -0.95, 1.0, 0.745, 0.85, 1.42, 0.75, glass); box(b, O, -0.95, 1.0, -0.75, 0.85, 1.42, -0.745, glass); box(b, O, 0.9, 1.0, -0.66, 0.905, 1.42, 0.66, glass);
+  for (const [x, z] of [[-1.25, 0.8], [-1.25, -0.8], [1.25, -0.8]] as const) {
+    b.add(new THREE.CylinderGeometry(0.34, 0.34, 0.24, 18).rotateX(Math.PI / 2), tyre, M(x, 0.34, z));
+    b.add(new THREE.CylinderGeometry(0.16, 0.16, 0.25, 12).rotateX(Math.PI / 2), hub, M(x, 0.34, z + Math.sign(z) * 0.01));
+  }
+  b.build(body); g.add(body);
+  const lb = new Batch(); lb.add(new THREE.CylinderGeometry(0.34, 0.34, 0.24, 18), tyre, M(1.7, 0.12, 1.6)); lb.add(new THREE.CylinderGeometry(0.16, 0.16, 0.25, 12), hub, M(1.7, 0.13, 1.6)); lb.build(g);
+  const screws: THREE.Mesh[] = []; addJack(g, screws, 1.25, 0.55);
+  g.traverse((m) => { if ((m as THREE.Mesh).isMesh) m.castShadow = m.receiveShadow = true; });
+  g.userData = { body, screws, steps: null, tilt: true };
+  return g;
+};
+export const slabProp = (len = 10, d = 3) => {
+  const g = new THREE.Group(), b = new Batch(); box(b, [0, 0, 0], -len / 2, -2, -d / 2, len / 2, 0, d / 2, lam("mudTex", () => ({ map: mudTex() })), 2); b.build(g); return g;
+};
+
 /** the set library: kind -> builder (origin = where the engine places this set instance) */
 export const SET_KINDS = {
   lab: buildLab, shop: buildPharm, ward: buildWard, street: buildStreet, brainCastle: buildBrain, capitol: buildCap, bathroom: buildBath,
-  office: buildOffice, kitchen: buildKitchen, harbor: buildHarbor, palace: buildPalace, meadow: buildMeadow,
+  office: buildOffice, kitchen: buildKitchen, harbor: buildHarbor, palace: buildPalace, meadow: buildMeadow, mudTown: buildMudTown,
 } as const;
 export type SetKind = keyof typeof SET_KINDS;
 /** what each set sounds like (audio.py room tones) and where its open side is */
 export const SET_AMBIENCE: Record<SetKind, string> = { lab: "lab", shop: "shop", ward: "room", street: "street", brainCastle: "outdoor", capitol: "outdoor", bathroom: "room",
-  office: "room", kitchen: "room", harbor: "harbor", palace: "crowd", meadow: "outdoor" };
+  office: "room", kitchen: "room", harbor: "harbor", palace: "crowd", meadow: "outdoor", mudTown: "street" };
 /** bottle shelf row for props: all one colour when color is given */
 export const shelfRowExport = (b: Batch, o: V3, x0: number, x1: number, y: number, z: number, seed: number, color?: string) => {
   let x = x0, i = 0;
