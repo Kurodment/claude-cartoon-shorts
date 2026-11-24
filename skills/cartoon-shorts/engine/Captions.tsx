@@ -71,12 +71,15 @@ export const Captions: React.FC<{ words: Word[]; style?: Partial<CaptionStyle>; 
   const fade = interpolate(age, [0, 2], [0, 1], { extrapolateRight: "clamp" });
   const activeIdx = g.words.reduce((a, w, i) => (t >= w.s - 0.03 ? i : a), -1);
   const up = (s: string) => (st.upper ? s.toLocaleUpperCase("tr-TR") : s);
+  // long Turkish words (CUMHURBAŞKANLIĞINA) must never leave the frame: shrink the group until its longest word fits
+  const longest = Math.max(...g.words.map((x) => clean(x.w).length));
+  const size = Math.min(st.size, 940 / (longest * 0.66));
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
       <div style={{
         position: "absolute", left: 60 * k, right: 60 * k, top: `${st.y * 100}%`, transform: `translateY(-50%) scale(${pop})`,
         opacity: fade, display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "baseline",
-        columnGap: 0.38 * st.size * k, rowGap: 0, fontFamily, fontWeight: 800, fontSize: st.size * k, lineHeight: 1.05,
+        columnGap: 0.38 * size * k, rowGap: 0, fontFamily, fontWeight: 800, fontSize: size * k, lineHeight: 1.05,
         textAlign: "center", letterSpacing: 0.5 * k,
       }}>
         {g.words.map((w, i) => {
@@ -85,7 +88,7 @@ export const Captions: React.FC<{ words: Word[]; style?: Partial<CaptionStyle>; 
           return (
             <span key={i} style={{ position: "relative", display: "inline-block", transform: on ? `scale(1.06)` : undefined, transformOrigin: "50% 60%" }}>
               {/* ink stroke underneath, fill on top: keeps the letter shapes full (a centred -webkit-text-stroke eats them) */}
-              <span style={{ position: "absolute", inset: 0, color: st.stroke, WebkitTextStroke: `${st.strokePx * k}px ${st.stroke}`,
+              <span style={{ position: "absolute", inset: 0, color: st.stroke, WebkitTextStroke: `${st.strokePx * (size / st.size) * k}px ${st.stroke}`,
                 textShadow: `0 ${6 * k}px 0 ${st.stroke}` }}>{txt}</span>
               <span style={{ position: "relative", color: on ? st.active : st.fill }}>{txt}</span>
             </span>

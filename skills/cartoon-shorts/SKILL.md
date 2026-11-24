@@ -84,6 +84,12 @@ All positions are metres relative to the shot's set origin; y up, the open side 
 - **Portrait framing**: visible width ≈ 0.41 × distance, height ≈ 0.73 × distance (fov 40). Three people side by
   side need ~6 m; queues read better in depth (a diagonal line). Two table props 0.34 m apart: ~1.9 m away, fov 36.
   Close-ups of a 0.25 m bottle: 1.1-1.4 m, fov 30-32. Interiors: sun `[150, 40]` (from behind the camera).
+- **Edge rule (the most common flaw)**: an actor card is ~0.8 m wide when waving, so keep every actor's sideways
+  offset from the look line ≤ 0.13 × its depth (fov 38-42) and its depth ≥ 4.5 m for a full body (a closer actor gets
+  cut at the frame edge / feet). Check both ends of every glide and of every `to` walk (set props like harbour crates
+  can hide the actor at the end). Desk close-ups: keep the person's face in frame too (pull back, look y 1.2-1.4).
+- **Crowds** (rallies, queues): 0.75 m spacing, two rows 1.2 m apart, the camera 8-10 m away; a 15 m wide shot makes
+  them dots. Put captions low (`0.86`) when the faces sit at 60-70 % height.
 - **cast**: `{ o: outfit, p: [x, z] | [x, y, z], to?: { p, f0, f1, ease? }, mode?: stand|stroll|march|sit, rate?,
   expr?: Expr | {frame: Expr}, wave?: bool | {frame: bool}, reach?: [[frame, 0..1]], facing?: -1|0|1, look?, tilt?,
   scale?, shadow?, from?, until?, swap?: [[frame, outfit]], cape?: frame, dust? }`. Adults are 1.8 m, face ~1.6 m,
@@ -190,4 +196,6 @@ Each sentence lands where the reference voice said it (sped up ≤ 1.15 if neede
 - A mirror/door rotated toward the lens blanks a shot; opaque glass hides liquids; props < 2 m from the lens become blobs.
 - A card's light/face reads best with the sun behind the camera; golden light from the front-side (`sun: [140, 16]`).
 - Captions are word-by-word, 70 % height: move them (`captions`) for table/desk close-ups where the subject sits there.
+  Long words shrink by themselves to fit the width (CUMHURBAŞKANLIĞINA used to run off both edges).
+- Sheet frames: pick one frame AFTER each glide lands (key `f` + `dur`), not only mid-shot: most cut-off actors show there.
 - Whisper reads long takes with context: check a doubtful word by transcribing that sentence alone.
