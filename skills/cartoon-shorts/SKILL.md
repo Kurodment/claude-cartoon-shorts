@@ -13,7 +13,7 @@ needed is in this file. Talk to the user in their language (Turkish shorts: Turk
 - Research: at most 2 `WebSearch` (standard) calls; keep facts + source URLs in `SCRIPT.md`, 1-2 lines each.
 - Never print or read whole JSON / logs / source; scripts print compact summaries. Look at ONE contact sheet per round.
 - At most 2 fix rounds on the sheet, then render the final. One QA run on the final.
-- Reuse sets / outfits / fx from the libraries below; copy patterns from `example/eroin/spec.ts` (a full short) and `example/showcase/spec.ts` (every v2 set, one shot each) in this skill instead of inventing.
+- Reuse sets / outfits / fx from the libraries below; copy patterns from `example/eroin/spec.ts` and `example/lamartine/spec.ts` (full shorts) and `example/showcase/spec.ts` (every v2 set, one shot each) in this skill instead of inventing.
 - Write each file once with the Write tool; fix with small Edits.
 
 ## 0. Setup (once per Remotion project; `npx create-video@latest` first)
@@ -121,7 +121,10 @@ creak flutter applause splash tick coins.
    nothing blocking the lens, expressions readable. Fix by editing numbers in the Spec; re-run the sheet for changed shots only.
 2. `python <skill>/scripts/render.py final <CompId> shorts/<name>/audio/mix.wav out/<name>/final.mp4 --qa`
    (1440x2560, ~2-3 min). QA: no black/frozen frames; the only white frame is `flashAt`; loudness -15 LUFS.
-3. Write `out/<name>/youtube.txt` in the video's language (no extra tokens: take it from SCRIPT.md):
+3. Cover: `python <skill>/scripts/cover.py <CompId> <frame> <name> "LINE 1|LINE 2|LINE 3" --hl 1,2` -> `out/<name>/kapak.png`
+   (1080x1920). Frame: the punchiest shot with a face or the key object (hook / reveal / ending). Title: 2-3 short lines
+   (<= 13 characters each) that tease the hook, e.g. "PİSA'YI|BİR SAVAŞ|KURTARDI"; the line(s) in `--hl` turn yellow.
+4. Write `out/<name>/youtube.txt` in the video's language (no extra tokens: take it from SCRIPT.md):
    ```
    BAŞLIK
    <a curiosity question, max ~60 characters, e.g. "Astronotlar Uzayda Neden Sifon Çekemez?">
@@ -132,7 +135,7 @@ creak flutter applause splash tick coins.
    ETİKETLER
    <6-10 comma-separated search terms>
    ```
-4. Report: path, length, voice, what to listen for (you cannot hear it). Offer one change round.
+5. Report: video, cover and text paths, length, voice, what to listen for (you cannot hear it). Offer one change round.
 
 ## Re-voice a finished short (another narrator, same picture)
 Composition captions read `inputProps.words`; the SFX stem is `shorts/<name>/audio/stem_sfx.wav`.

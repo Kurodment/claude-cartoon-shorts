@@ -1,0 +1,23 @@
+{ "music": null,
+  "ambience": [[0, "outdoor"], [153, "room"], [317, "crowd"], [466, "room"], [777, "crowd"], [921, "harbor"], [1003, "outdoor"], [1391, "street"],
+    [1569, "room"], [1667, "crowd"], [1804, "room"], [1984, "outdoor"], [2062, "crowd"]],
+  "cues": [
+    ["çiftçi-2", "pop", -10], ["çiftçi", "whoosh", -16, 0, {"dur": 0.35, "peak": 0.1, "lo": 600, "hi": 3000}],
+    [149, "whoosh", -14], ["Lamartine-2", "shimmer", -18],
+    ["şair", "flutter", -24, 0, {"dur": 1.0}], ["dışişleri", "bell", -18, 0.2, {"f": 1046.5, "dur": 1.6}],
+    ["aday", "applause", -18, 0, {"dur": 2.2}], ["yenilgi-8", "whoosh", -16, 0, {"dur": 0.3, "peak": 0.22, "lo": 300, "hi": 1500}], ["yenilgi", "thump", -6, 0, {"f0": 75, "big": 1.2}],
+    ["borç-2", "coins", -12, 0], ["borç+6", "oof", -18, 0],
+    ["plan-2", "bell", -14, 0, {"f": 1318.5}], ["Osmanlı-2", "whoosh", -18, 0.3, {"dur": 0.4}], ["çiftlik-2", "shimmer", -18, 0.3],
+    ["mektup", "steps", -26, -0.2, {"n": 4, "rate": 6, "hard": 0.2}], ["mektup+22", "whoosh", -16, 0.3, {"dur": 0.6, "peak": 0.2}],
+    ["kabul-2", "bell", -12, 0, {"f": 987.8, "dur": 2.4}], ["kabul+2", "applause", -20, 0, {"dur": 1.6}],
+    ["gemiye", "bell", -20, 0.4, {"f": 392, "dur": 2.5}], ["İzmir'e", "steps", -22, -0.2, {"n": 8, "rate": 3}],
+    ["büyük", "pop", -16, 0.2], ["hayaller", "shimmer", -18],
+    ["ova#2", "shimmer", -18, 0.2], ["yoktu-2", "thump", -14, 0, {"f0": 60, "big": 0.6}], ["yoktu", "oof", -16],
+    ["Tohum-2", "pop", -12, -0.3], ["işçi-2", "pop", -12, 0], ["işçi+4", "pop", -14, 0.3], ["alet-2", "coins", -12, 0.3],
+    ["bedava-2", "shimmer", -18, 0.3], ["öylece", "tick", -16, 0.3, {"n": 4}], ["durur", "oof", -18, -0.2],
+    ["ama", "steps", -22, -0.4, {"n": 6, "rate": 3}], ["kimseyi", "steps", -22, 0.4, {"n": 6, "rate": 3}], ["bulamıyor+4", "oof", -18],
+    ["ödeme-2", "coins", -10, 0.3], ["unutmuyor-2", "pop", -16], ["unutmuyor", "angel", -18],
+    ["Fransa'ya", "tick", -20, 0.3, {"n": 6}], ["sekiz-2", "thump", -12, 0, {"f0": 110, "big": 0.6}], ["sekiz", "shimmer", -18],
+    ["kaybetti", "whoosh", -22, 0, {"dur": 0.8, "peak": 0.4, "lo": 200, "hi": 900}],
+    ["dost-2", "pop", -14], ["dost", "angel", -16], ["kazandı", "applause", -18, 0, {"dur": 2.0}]
+  ] }
