@@ -20,6 +20,14 @@ parameters only (never one story's numbers), bump `engine/version.ts` + `engine/
 - Reuse sets / outfits / fx from the libraries below; copy patterns from `example/eroin/spec.ts` and `example/lamartine/spec.ts` (full shorts) and `example/showcase/spec.ts` (every v2 set, one shot each) in this skill instead of inventing.
 - Write each file once with the Write tool; fix with small Edits.
 
+## Everything runs on the user's PC
+Renders, previews, checks, sound synthesis and whisper alignment all run locally (Ryzen 5 7500F, RTX 5060 Ti, 32 GB:
+preview ~15 fps, 2K final ~2-3 min per minute of video; Remotion's default concurrency is already the fastest, 10 is
+not faster). Start the long ones (preview, final, sound, longform renders) with `run_in_background` and keep working
+or wait for the notification instead of blocking; never render in a cloud sandbox. Only ElevenLabs speech runs in the cloud.
+The user can also double-click `render.bat` in the project (1 check, 2 preview + review sheets, 3 final 2K), or
+`render.bat <name> <CompId> <1|2|3>` without questions.
+
 ## 0. Setup (once per Remotion project; `npx create-video@latest` first)
 `python <skill>/scripts/setup.py install` (engine -> `src/shorts/engine`, Kenney assets, pinned npm + pip packages).
 Set `REMOTION_TMP` to a big drive (every bundle copies `public/`). Run every command from the project root.

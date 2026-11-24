@@ -13,6 +13,7 @@ PIP = ["numpy", "scipy", "pillow", "edge-tts", "faster-whisper"]
 
 def install():
     shutil.copytree(os.path.join(SKILL, "engine"), "src/shorts/engine", dirs_exist_ok=True)
+    shutil.copy(os.path.join(SKILL, "scripts", "render.bat"), "render.bat")  # double-click render menu (Windows)
     shutil.copytree(os.path.join(SKILL, "assets", "kenney"), "public/bridge/kenney", dirs_exist_ok=True)
     ver = re.search(r'"remotion":\s*"\^?([\d.]+)"', open("package.json", encoding="utf-8").read()).group(1)
     npm = shutil.which("npm") or "npm"
