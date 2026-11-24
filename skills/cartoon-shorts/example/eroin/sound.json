@@ -1,0 +1,27 @@
+{
+  "music": null,
+  "ambience": [[0, "shop"], [123, "street"], [209, "lab"], [791, "shop"], [860, "room"], [924, "lab"], [1204, "room"], [1359, "lab"],
+    [1525, "outdoor"], [1813, "street"], [1910, "outdoor"], [2017, "room"]],
+  "cues": [
+    ["öksürük", "cough", -10, -0.3], ["satılıyordu", "clink", -12, 0.1], ["satılıyordu+24", "whoosh", -14],
+    ["iki+2", "clink", -15, -0.2, {"f0": 3100}], ["iki+10", "clink", -15, 0.2, {"f0": 2600}],
+    ["aspirin-2", "bell", -14, -0.2], ["değiştirilmiş-3", "shimmer", -18, 0.2],
+    ["kahraman-4", "whoosh", -12, 0, {"dur": 0.6, "peak": 0.2, "lo": 300, "hi": 2600}], ["kahraman", "flutter", -20],
+    ["kahraman+2", "hurrah", -16, -0.4, {"base": 140}], ["kahraman+7", "hurrah", -16, 0, {"base": 120}], ["kahraman+12", "hurrah", -16, 0.4, {"base": 160}],
+    ["Eroin#2-9", "whoosh", -14], ["Eroin#2-2", "bell", -10, 0, {"f": 987.8, "dur": 2.6}], ["Eroin#2+3", "shimmer", -18, 0, {"f0": 1600}],
+    [795, "cough", -12, -0.4], [812, "cough", -12, -0.15], [829, "cough", -12, 0.1], [846, "cough", -12, 0.35], [826, "bell", -14, 0.4, {"f": 2093, "dur": 0.9}],
+    [862, "cough", -13, -0.5], [875, "cough", -13, -0.17], [888, "cough", -13, 0.17], [901, "cough", -13, 0.5],
+    ["Morfin-2", "rattle", -12, -0.2, {"dur": 0.9, "density": 40}], ["Morfin+18", "clink", -10, -0.2, {"f0": 900, "dur": 0.3, "bright": 0.5}],
+    ["eroin#3-2", "angel", -13, 0.2], ["eroin#3+1", "shimmer", -19, 0.2, {"f0": 1800}],
+    ["reçetesiz", "whoosh", -22, -0.3, {"dur": 0.3, "peak": 0.15, "lo": 900, "hi": 3000}], ["yirmiden", "whoosh", -22, 0.3, {"dur": 0.3, "peak": 0.15, "lo": 900, "hi": 3000}],
+    ["ülkeye", "clink", -18, 0.2, {"f0": 760, "dur": 0.12, "bright": 0.3}], ["gönderiliyor", "clink", -18, -0.2, {"f0": 820, "dur": 0.12, "bright": 0.3}],
+    ["garip", "oof", -18, -0.3], ["bırakamıyor-9", "rattle", -18, 0.2, {"dur": 0.8, "density": 18}], ["bırakamıyor-3", "whoosh", -16, 0.2, {"dur": 0.25, "peak": 0.08, "lo": 500, "hi": 1800}],
+    ["yapıyordu-2", "chainWhip", -8, 0.2], ["yapıyordu+4", "thump", -10, 0.2, {"f0": 90, "big": 0.8}], ["yapıyordu+7", "clink", -16, 0.3, {"f0": 3200}],
+    ["beyne-6", "run", -16, 0.1, {"n": 14}], ["hızlı-4", "whoosh", -12], ["morfinden", "whoa", -18, 0.4],
+    ["dönüşür-5", "whoosh", -14, 0, {"dur": 0.35, "peak": 0.1, "lo": 600, "hi": 3000}], ["dönüşür-1", "pop", -10],
+    ["girmişti", "steps", -22, -0.2, {"n": 3, "rate": 1.6}],
+    [1864, "creak", -16], [1892, "thump", -10, 0, {"f0": 60}], [1893, "rattle", -14, 0, {"dur": 0.5, "heavy": true}],
+    [1910, "flutter", -26, 0, {"dur": 1.8}], ["yasakladı-8", "whoosh", -16, 0, {"dur": 0.3, "peak": 0.22, "lo": 300, "hi": 1500}], ["yasakladı", "thump", -6, 0, {"f0": 75, "big": 1.2}],
+    [2018, "creak", -22, 0.3, {"dur": 0.5}], ["aspirin#2-2", "bell", -16, 0, {"dur": 2.2}]
+  ]
+}

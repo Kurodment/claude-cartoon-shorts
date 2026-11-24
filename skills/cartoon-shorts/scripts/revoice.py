@@ -3,7 +3,8 @@
 # captions on the new word timings and muxed. Whisper loads once; the SFX are not re-synthesized.
 #
 #   python scripts/revoice.py --take <file|url> --script <voice.txt> --ref <reference words.json> \
-#       --sfx <stem_sfx.wav> --comp <CompositionId> --out <final.mp4> [--caption-map map.json] [--scale 1.3333333333333333] [--qa]
+#       --sfx <stem_sfx.wav> --comp <CompositionId> --out <final.mp4> [--scale 1.3333333333333333] [--qa]
+#   python revoice.py --take <file|url> --script voice.txt [--ref words.json] --fit-only <dir>   (voice.wav + words.json only)
 #
 # Fitting: whisper large-v3 (GPU when available) finds every script line in the take; each line is cut out and placed
 # where the reference voice spoke it. A line longer than its slot is sped up (ffmpeg atempo, at most --max-speed) and
@@ -89,20 +90,19 @@ def true_peak(x):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--take", required=True); ap.add_argument("--script", required=True); ap.add_argument("--ref", required=True)
-    ap.add_argument("--sfx", required=True); ap.add_argument("--comp", required=True); ap.add_argument("--out", required=True)
+    ap.add_argument("--take", required=True); ap.add_argument("--script", required=True); ap.add_argument("--ref")
+    ap.add_argument("--sfx"); ap.add_argument("--comp"); ap.add_argument("--out"); ap.add_argument("--fit-only", metavar="DIR")
     ap.add_argument("--caption-map"); ap.add_argument("--scale", default="1.3333333333333333"); ap.add_argument("--max-speed", type=float, default=1.15)
     ap.add_argument("--fps", type=int, default=30); ap.add_argument("--qa", action="store_true"); ap.add_argument("--no-render", action="store_true")
     a = ap.parse_args()
-    work = os.path.splitext(a.out)[0] + "_work"; os.makedirs(work, exist_ok=True)
+    work = a.fit_only or os.path.splitext(a.out)[0] + "_work"; os.makedirs(work, exist_ok=True)
     take = a.take
     if take.startswith("http"):
         take = os.path.join(work, "take.mp3"); urllib.request.urlretrieve(a.take, take); log(f"downloaded take -> {take}")
     lines = [l.strip() for l in open(a.script, encoding="utf-8") if l.strip()]
-    ref = json.load(open(a.ref, encoding="utf-8"))
-    starts = [min(w["s"] for w in ref if w.get("line") == i) for i in range(len(lines))]
-    sfx = dec(a.sfx, SR, 2)
-    total = sfx.shape[1] / SR
+    ref = json.load(open(a.ref, encoding="utf-8")) if a.ref else None
+    starts = [min(w["s"] for w in ref if w.get("line") == i) for i in range(len(lines))] if ref else None
+    sfx = dec(a.sfx, SR, 2) if a.sfx else None
     # ---- whisper once: find the lines ----
     from faster_whisper import WhisperModel
     try:
@@ -124,7 +124,12 @@ def main():
     if missing:
         sys.exit(f"lines not found in the take: {missing} (the take must read the script as written)")
     log(f"aligned: word match {sm.ratio():.3f}, {len(lines)} lines")
-    # ---- place each line on its reference slot ----
+    if starts is None:  # a new short: sentences back to back with steady 0.28 s gaps
+        starts, t = [], 0.2
+        for i in range(len(lines)):
+            lo, hi = span[i]; starts.append(t); t += heard[hi].end + 0.12 - max(0.0, heard[lo].start - 0.04) + 0.28
+    total = sfx.shape[1] / SR if sfx is not None else (max(w["e"] for w in ref) + 0.4 if ref else starts[-1] + heard[span[len(lines) - 1][1]].end - heard[span[len(lines) - 1][0]].start + 0.6)
+    # ---- place each line on its slot ----
     voice = np.zeros(int(total * SR)); words = []; t_end = 0.0; segs_out = []
     for i, line in enumerate(lines):
         lo, hi = span[i]
@@ -147,7 +152,15 @@ def main():
         segs_out.append((i + 1, st, k))
     sped = [f"{n}:x{k:.2f}" for n, _, k in segs_out if k > 1.005]
     log(f"placed {len(lines)} lines, sped up: {', '.join(sped) or 'none'}; ends {t_end:.2f} s of {total:.2f}")
+    if a.fit_only:
+        v = voice / max(np.abs(voice).max(), 1e-9) * 0.89
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f64le", "-ar", str(SR), "-ac", "1", "-i", "-", "-c:a", "pcm_s16le", os.path.join(work, "voice.wav")], input=v.tobytes(), check=True)
+        json.dump(words, open(os.path.join(work, "words.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+        log(f"-> {work}/voice.wav, words.json"); return
     # captions: script spelling, spelled-out numbers merged back to digits
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from voice import merge_numbers
+    words = merge_numbers(words)
     if a.caption_map:
         for seq, rep in json.load(open(a.caption_map, encoding="utf-8")):
             out, i = [], 0

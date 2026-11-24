@@ -1,44 +1,50 @@
-# claude-shorts-revoice
+# claude-cartoon-shorts
 
-A [Claude Code](https://claude.com/claude-code) skill that re-voices a finished animated short (Remotion) with a new
-narrator in one command, without touching the picture, the cameras or the sound effects.
+A [Claude Code](https://claude.com/claude-code) skill that turns an idea into a ~70 s vertical cartoon short (flat
+bean-head characters in an inked, colourful 3D world, rendered with three.js inside Remotion) with narration,
+word-by-word captions and synthesized sound effects, at a low token cost: the engine is ready, and a new video is ONE
+short Spec file plus a sound cue list.
 
-Bitmiş bir animasyon kısa videonun (Remotion) anlatıcısını tek komutla değiştiren bir Claude Code skill'i. Görüntü,
-kamera ve efektler olduğu gibi kalır; yeni sesin her cümlesi eski sesin o cümleyi söylediği ana yerleşir.
+Bir fikirden ~70 saniyelik dikey çizgi film kısa videosu üreten Claude Code skill'i. Motor hazır; her yeni video için
+model sadece kısa bir senaryo dosyası (Spec) ve bir ses listesi yazar. Bu yüzden az token harcar.
 
 ## Install
 
 ```
-npx skills add Kurodment/claude-shorts-revoice
+npx skills add Kurodment/claude-cartoon-shorts
 ```
 
-## What it does
-
-1. **Take**: one narration take from the ElevenLabs MCP (voice picked from the library, cost estimated first, a single
-   generation) or any TTS file / recording.
-2. **Fit**: Whisper large-v3 finds every script sentence in the take; each one is placed on the reference voice's
-   timing. Sentences longer than their slot are sped up slightly (ffmpeg `atempo`, max 1.15).
-3. **Mix**: new voice at -15 LUFS with the short's cached SFX stem (SFX peaks 6 dB under the voice), limiter at -1.2 dBTP.
-4. **Render**: the Remotion composition with word-by-word captions on the new timings, muxed with the mix.
-
-The voice part takes about 15 seconds on a GPU; the rest is the video render.
+Then, in a Remotion project (`npx create-video@latest`):
 
 ```
-python skills/shorts-revoice/scripts/revoice.py --take take.mp3 --script voice.txt --ref words.json \
-  --sfx stem_sfx.wav --comp MyShort --out out/final_newvoice.mp4 --caption-map caption_map.json
+python <skill>/scripts/setup.py install
 ```
 
-See [`skills/shorts-revoice/SKILL.md`](skills/shorts-revoice/SKILL.md) for the inputs the project needs and the full workflow.
+## Pipeline
+
+| Step | Tool | Output |
+|---|---|---|
+| Idea → facts → script | Claude (2 searches max) | `SCRIPT.md`, `voice.txt` |
+| Voice | `voice.py edge` (free) or ElevenLabs MCP + `voice.py take` | `voice.wav`, `words.json`, word/frame table |
+| Picture | one `spec.ts` (sets, shots, cameras, cast, effects, props) | composition registered by `setup.py new` |
+| Sound | `sound.json` → `sound.py` | `mix.wav`, stems |
+| Look check | `render.py sheet` | one contact sheet image |
+| Final | `render.py final --qa` | 1440×2560 mp4, QA summary |
+| Another narrator | `revoice.py` | same picture, new voice (~15 s + render) |
+
+Libraries: 7 sets (lab, shop, ward, street + factory, brain castle, capitol, bathroom), 28 outfits, 14 expressions,
+16 effect kinds, 4 prop kinds, 17 sound cues, room tones. `example/eroin/` is a complete 21-shot short.
 
 ## Requirements
 
-Python 3.10+ with `numpy scipy faster-whisper` (GPU: `nvidia-cublas-cu12 nvidia-cudnn-cu12`), ffmpeg, Node + Remotion.
+Node + Remotion 4, Python 3.10+ (numpy, scipy, pillow, edge-tts, faster-whisper; GPU optional), ffmpeg.
 
-## Roadmap
+## Credits
 
-- Generate the take straight from the ElevenLabs REST API when `ELEVENLABS_API_KEY` is set
-- Per-line re-takes for lines that need more than 10 % speed-up
-- Side-by-side comparison page of several narrators
+Built on [mromidev/claude-animated-shorts](https://github.com/mromidev/claude-animated-shorts) (MIT): the look
+(ink pass, lens blur, grade, two-tone shading, Pen character drawing, sound DSP) comes from there; this repo turns it
+into a reusable Spec-driven engine with set / outfit / effect / sound libraries, Turkish voice tools and re-voicing.
+3D models: Kenney (CC0).
 
 ## License
 
