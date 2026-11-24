@@ -2,6 +2,8 @@
 #   python render.py sheet <CompId> <total_frames> [--frames 30,280,...] [--n 15] [--out out/<name>/sheet]
 #       stills at half size (one per shot or --n evenly spaced) -> ONE contact sheet image <out>.jpg to review,
 #       plus a framing report: every actor whose side or head leaves the frame at those frames
+#   python render.py check src/shorts/<name>/spec.ts   (every 2nd frame, no pixels, ~5 s: CUT / OVERLAP / HIDDEN / INSIDE / CARD)
+#   python render.py sheet <CompId> <total> --spec src/shorts/<name>/spec.ts   (auto frames: each shot's middle + every issue)
 #   python render.py final <CompId> <mix.wav> <out.mp4> [--props props.json] [--scale 1.3333333333333333] [--qa]
 #       2K vertical render (1080x1920 x 4/3 = 1440x2560), mux with the mix, optional frame/loudness QA
 # REMOTION_TMP (a big drive) is used for Remotion's bundle copies of public/.
@@ -17,8 +19,32 @@ def env():
     return e
 
 
+def run_check(spec):
+    """geometry check of every 2nd frame (no pixels): returns (report lines, shot starts, issue frames)"""
+    import re
+    shutil.copy(os.path.join(HERE, "check.ts"), "scripts/shorts-check.ts")
+    npx = shutil.which("npx") or "npx"
+    r = subprocess.run([npx, "-y", "tsx", "scripts/shorts-check.ts", spec], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    out = [l for l in r.stdout.splitlines() if l.strip()]
+    if r.returncode: print(r.stdout[-2000:], r.stderr[-2000:]); sys.exit(r.returncode)
+    shots = [int(x) for x in next((l for l in out if l.startswith("shots: ")), "shots: 0").split()[1].split(",")]
+    issues = sorted({int(m.group(1)) for l in out for m in [re.search(r" f(\d+)-\d+ ", l)] if m})
+    return [l for l in out if not l.startswith("shots: ")], shots, issues
+
+
+def check(a):
+    os.makedirs("scripts", exist_ok=True)
+    print("\n".join(run_check(a.spec)[0]))
+
+
 def sheet(a):
     frames = [int(x) for x in a.frames.split(",")] if a.frames else [round((i + 0.5) * a.total / a.n) for i in range(a.n)]
+    if a.spec:  # auto frames: the middle of every shot + the first frame of every reported issue
+        os.makedirs("scripts", exist_ok=True)
+        rep, shots, issues = run_check(a.spec); print("\n".join(rep))
+        if not a.frames:
+            ends = shots[1:] + [a.total]
+            frames = sorted(set([(s0 + s1) // 2 for s0, s1 in zip(shots, ends)] + issues))
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     e = env(); e["COMP"] = a.comp
     # node resolves packages from the script's folder: run a copy inside the project
@@ -57,10 +83,11 @@ def final(a):
 
 def main():
     ap = argparse.ArgumentParser(); sp = ap.add_subparsers(dest="cmd", required=True)
-    s = sp.add_parser("sheet"); s.add_argument("comp"); s.add_argument("total", type=int); s.add_argument("--frames"); s.add_argument("--n", type=int, default=15); s.add_argument("--out", default="out/sheet")
+    s = sp.add_parser("sheet"); s.add_argument("comp"); s.add_argument("total", type=int); s.add_argument("--frames"); s.add_argument("--n", type=int, default=15); s.add_argument("--out", default="out/sheet"); s.add_argument("--spec")
+    c = sp.add_parser("check"); c.add_argument("spec")
     f = sp.add_parser("final"); f.add_argument("comp"); f.add_argument("mix"); f.add_argument("out"); f.add_argument("--props"); f.add_argument("--scale", default="1.3333333333333333"); f.add_argument("--qa", action="store_true")
     a = ap.parse_args()
-    sheet(a) if a.cmd == "sheet" else final(a)
+    {"sheet": sheet, "final": final, "check": check}[a.cmd](a)
 
 
 if __name__ == "__main__":

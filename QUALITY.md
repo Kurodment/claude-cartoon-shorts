@@ -7,10 +7,12 @@ Each new short fixes one open item and adds 2-4 reusable assets (see SKILL.md "A
 - [x] Long captions auto-fit the width (Lamartine fix)
 - [x] Acting 1/3: hand-held props (`hold`) - guide, tyre, dish (Michelin)
 - [x] Acting 2/3: 13 arm poses (point, up, hip, cross, temple...), 3 faces, idle sway on every card, camera ease + curved via-paths (from the cartoon-short-kit)
+- [x] Auto-framing camera keys (`frame: {size, on, side...}`) + `render.py check`: every-2nd-frame geometry check (CUT / OVERLAP / HIDDEN / INSIDE / CARD) in ~5 s (Michelin: 19 issues -> only intended ones)
 - [x] Long-form 16:9 mode (ReachMora engine, Turkish alignment + fonts), local install
 
 ## Open (top = next)
 - [ ] Acting 3/3: run cycle + anticipation/overshoot on actions
+- [ ] Models: real CC0 / generated 3D models via Blender for hero props and buildings (next)
 - [ ] Talking: mouth flaps on the speaking character
 - [ ] Sets: denser dressing (clutter, background extras), second light colour per set
 - [ ] Sound: ElevenLabs sound effects for the 3-4 key impacts (credits, ask once)

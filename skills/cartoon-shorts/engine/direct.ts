@@ -30,7 +30,53 @@ const pushK = (f: number, f0: number, rate: number, punch = 0, n = 30) => {
   if (punch > rate) for (let i = 0; i < Math.min(x, n); i++) s += (punch - rate) * Math.max(0, Math.min(1, (i + 0.5) / 8, (n - i - 0.5) / 8));
   return Math.exp(-s);
 };
-const frame = (k: CamKey, o: V3, f: number): Cam => {
+/** an actor's set-relative position at frame f (p + its walk) */
+export const actorAt = (a: ActorSpec, f: number): V3 => {
+  let [x, y, z] = a.p.length === 3 ? a.p : [a.p[0], 0, a.p[1]];
+  if (a.to) { const u = clamp01((f - a.to.f0) / (a.to.f1 - a.to.f0)), e = a.to.ease === false ? u : smooth(u); x += (a.to.p[0] - x) * e; z += (a.to.p[1] - z) * e; }
+  return [x, y, z];
+};
+const SIZES: Record<string, [number, number, number]> = { wide: [-0.4, 2.6, 0.7], full: [-0.08, 2.12, 0.86], ms: [0.82, 2.08, 0.9], mcu: [1.18, 2.04, 0.92], cu: [1.36, 1.98, 0.94] };
+const framed = new WeakMap<CamKey, { pos: V3; look: V3 }>();
+/** auto-framing: camera position + look point that keep every subject inside the frame margins */
+export const resolveFrame = (shot: ShotSpec, k: CamKey, holdEnd = k.f + 60): { pos: V3; look: V3 } => {
+  const hit = framed.get(k); if (hit) return hit;
+  const F = k.frame!, fov = k.fov ?? 40, fa = F.at ?? k.f + (k.cut ? 0 : k.dur ?? 0), cast = shot.cast ?? [];
+  const [y0, y1, m] = SIZES[F.size ?? "full"];
+  type B = { p: V3; hw: number; lo: number; hi: number };
+  const boxes: B[] = (F.on ?? cast.map((_, i) => i)).filter((i) => cast[i]).map((i) => {
+    const a = cast[i], P = actorAt(a, fa), s = a.scale ?? 1, wide = a.wave !== undefined || a.hold !== undefined || a.pose !== undefined;
+    return { p: P, hw: (wide ? 0.55 : 0.42) * s, lo: P[1] + y0 * s, hi: P[1] + y1 * s };
+  });
+  for (const q3 of F.pts ?? []) boxes.push({ p: q3, hw: 0.2, lo: q3[1] - 0.2, hi: q3[1] + 0.2 });
+  if (!boxes.length) throw new Error(`frame key at f${k.f}: no subjects`);
+  const az = ((F.az ?? 12) * Math.PI) / 180, el = ((F.el ?? 5) * Math.PI) / 180;
+  const dir: V3 = [Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)], fw: V3 = [-dir[0], -dir[1], -dir[2]];
+  const rn = Math.hypot(fw[0], fw[2]) || 1, right: V3 = [-fw[2] / rn, 0, fw[0] / rn];
+  const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const xs = boxes.flatMap((b) => [dot(b.p, right) - b.hw, dot(b.p, right) + b.hw]);
+  const cR = (Math.min(...xs) + Math.max(...xs)) / 2, cY = (Math.min(...boxes.map((b) => b.lo)) + Math.max(...boxes.map((b) => b.hi))) / 2;
+  const cF = boxes.reduce((s, b) => s + dot(b.p, fw), 0) / boxes.length;
+  const tv = Math.tan((fov * Math.PI) / 360), th = tv * 0.5625;
+  let look: V3 = [right[0] * cR + fw[0] * cF, cY, right[2] * cR + fw[2] * cF], d = 1.2;
+  for (let it = 0; it < 3; it++) {
+    d = 1.2;
+    for (const b of boxes) {
+      const rel: V3 = [b.p[0] - look[0], 0, b.p[2] - look[2]], r = dot(rel, right), dep = dot(rel, fw);
+      d = Math.max(d, (Math.abs(r) + b.hw) / (th * m) - dep);
+      for (const yy of [b.lo, b.hi]) d = Math.max(d, Math.abs(yy - look[1]) / (tv * m) - dep);
+    }
+    if (!F.side) break;
+    const sh = -F.side * 0.3 * th * d; // subjects on a third: move the look point the other way
+    look = [right[0] * (cR + sh) + fw[0] * cF, cY, right[2] * (cR + sh) + fw[2] * cF];
+  }
+  d *= Math.exp((k.push ?? 0.0025) * Math.max(0, holdEnd - k.f)) * (k.punch ? 1.12 : 1); // the creeping push-in must not cut anyone at the end of the hold
+  const out = { pos: [look[0] + dir[0] * d, look[1] + dir[1] * d, look[2] + dir[2] * d] as V3, look };
+  framed.set(k, out); return out;
+};
+const frame = (k0: CamKey, o: V3, f: number, shot?: ShotSpec, holdEnd?: number): Cam => {
+  const k = k0.frame && shot ? { ...k0, ...resolveFrame(shot, k0, holdEnd) } : k0;
+  if (!k.pos || !k.look) throw new Error(`camera key at f${k.f} needs pos+look or frame`);
   const look = add(o, k.look), pos = add(o, k.pos), m = pushK(f, k.f, k.push ?? 0.0025, k.punch ?? 0, k.n ?? 30);
   return { pos: [look[0] + (pos[0] - look[0]) * m, look[1] + (pos[1] - look[1]) * m, look[2] + (pos[2] - look[2]) * m], look, fov: k.fov ?? 40, roll: k.roll ?? 0 };
 };
@@ -53,13 +99,14 @@ const spline = (pts: V3[], u: number): V3 => {
   return p1.map((_, k) => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t * t + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t * t * t)) as V3;
 };
 export const camAt = (spec: Spec, origin: V3, shot: ShotSpec, f: number): Cam => {
-  const keys = shot.cam;
-  let c = frame(keys[0], origin, f);
+  const keys = shot.cam, si = spec.shots.indexOf(shot), end = si >= 0 ? shotEnd(spec, si) : shot.a + 90;
+  const hold = (j: number) => (j + 1 < keys.length ? keys[j + 1].f : end);
+  let c = frame(keys[0], origin, f, shot, hold(0));
   for (let i = 1; i < keys.length; i++) {
     const k = keys[i];
     if (f < k.f) break;
-    if (k.cut) { c = frame(k, origin, f); continue; }
-    const t = Math.max(0, Math.min(1, (f - k.f) / (k.dur ?? 24))), e = k.ease && EASE[k.ease] ? EASE[k.ease](t) : glide(t), b = frame(k, origin, f);
+    if (k.cut) { c = frame(k, origin, f, shot, hold(i)); continue; }
+    const t = Math.max(0, Math.min(1, (f - k.f) / (k.dur ?? 24))), e = k.ease && EASE[k.ease] ? EASE[k.ease](t) : glide(t), b = frame(k, origin, f, shot, hold(i));
     const m = mixC(c, b, e);
     if (k.via?.length && t < 1) m.pos = spline([c.pos, ...k.via.map((v) => add(origin, v)), b.pos], e);
     c = m;

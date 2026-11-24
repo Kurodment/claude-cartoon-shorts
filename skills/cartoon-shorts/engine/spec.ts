@@ -18,7 +18,13 @@ export const wordsAt = (words: Word[]) => {
 };
 
 /** camera key: glide (dur frames, default 24) or cut to a framing that creeps in at `push` per frame (+ `punch` for ~n f) */
-export type CamKey = { f: number; pos: V3; look: V3; fov?: number; roll?: number; push?: number; punch?: number; n?: number; dur?: number; cut?: boolean;
+/** automatic framing: the engine places the camera so the subjects fill the frame with margins (no cut-offs).
+ *  on: cast indices (default: the whole cast), pts: extra set-relative points to keep in frame (props, fx),
+ *  size: wide | full | ms (waist up) | mcu (chest up) | cu (face), az: degrees around the subjects (0 = from +z,
+ *  + = from screen right), el: camera height angle (deg, + = above), side: -1/1 puts the subjects on the left/right third,
+ *  at: frame whose actor positions are framed (default: when this key's glide lands) */
+export type FrameSpec = { on?: number[]; pts?: V3[]; size?: "wide" | "full" | "ms" | "mcu" | "cu"; az?: number; el?: number; side?: -1 | 0 | 1; at?: number };
+export type CamKey = { f: number; pos?: V3; look?: V3; frame?: FrameSpec; fov?: number; roll?: number; push?: number; punch?: number; n?: number; dur?: number; cut?: boolean;
   /** glide easing: smooth (default), out (fast start, soft landing: reveals, whips), back (small overshoot: arrivals), in */
   ease?: "smooth" | "out" | "back" | "in";
   /** via-points for a curved glide (Catmull-Rom through them), set-relative */

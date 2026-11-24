@@ -65,17 +65,17 @@ export const michelinSpec: Spec = {
       cast: [{ o: YOU, p: [0, -1.2], expr: "grin", pose: "hip,lift" }],
       fx: [{ k: "map", f0: w("haritalar") - 4, f1: w("benzinlikler") + 10, p: [0, 2.6, -2.6], w: 2.4, h: 1.5 }] },
     { a: 779, set: "shop", sun: [150, 40], // 10 it even explains how to change a tyre
-      cam: [{ f: 779, pos: [1.2, 1.7, 5.2], look: [0, 1.0, -1.4], fov: 40, push: 0.0025 }],
+      cam: [{ f: 779, frame: { size: "full", pts: [[0.4, 1.0, -2.2]], el: 8 }, fov: 40, push: 0.0025 }],
       cast: [{ o: "mechanic", p: [-0.4, -0.6], expr: "stern", hold: "tyre", holdW: 0.4, facing: 1 }, { o: YOU, p: [0.7, 0.5], expr: "grin", hold: "guide", facing: -1 }],
       props: [{ k: "oldCar", p: [0.4, 0, -2.2] }] },
     { a: 864, set: "town", // 11 thirty-five thousand printed and given away free
-      cam: [{ f: 864, pos: [0.5, 2.0, 24], look: [0, 1.9, 10], fov: 42, push: 0.0025 }],
-      cast: [{ o: YOU, p: [0, 13.5], expr: "laugh", wave: true }, { o: "lady", p: [-1.6, 12.6], expr: "grin", wave: { 0: false, [w("bedava")]: true } },
-        { o: "man", p: [1.6, 12.8], expr: "grin", wave: { 0: false, [w("bedava") + 6]: true } }, { o: "gent", p: [-0.9, 11.2], expr: "smile", hold: "guide" }, { o: "girl", p: [1.0, 11.4], expr: "laugh", hold: "guide" }],
-      fx: [-1.4, -0.5, 0.4, 1.3].map((x, i) => ({ k: "card", draw: "guide", p: [x, 4, 13], w: 0.26, path: [[w("bedava") - 20 + i * 6, x, 4.2, 13, 0.5 * (i % 2 ? 1 : -1)], [w("bedava") + 10 + i * 6, x * 0.8, 1.4, 13.2, 0]] }) as FxSpec) },
+      cam: [{ f: 864, frame: { size: "full", az: 0, el: 15 }, fov: 40, push: 0.002 }],
+      cast: [{ o: YOU, p: [0, 13.5], expr: "laugh", wave: true }, { o: "lady", p: [-0.95, 12.9], expr: "grin", wave: { 0: false, [w("bedava")]: true } },
+        { o: "man", p: [0.95, 13.1], expr: "grin", wave: { 0: false, [w("bedava") + 6]: true } }, { o: "gent", p: [-0.48, 11.8], expr: "smile", hold: "guide" }, { o: "girl", p: [0.48, 11.9], expr: "laugh", hold: "guide" }],
+      fx: [-1.4, -0.5, 0.4, 1.3].map((x, i) => ({ k: "card", draw: "guide", p: [x, 4, 13], w: 0.26, path: [[w("bedava") - 20 + i * 6, x, 4.2, 13, 0.5 * (i % 2 ? 1 : -1)], [w("bedava") + 10 + i * 6, x * 0.8 + 0.3, 0.95, 13.9, 0]] }) as FxSpec) },
     { a: 972, set: "shop", sun: [150, 40], // 12 one day you walk into a tyre shop
-      cam: [{ f: 972, pos: [0.4, 1.8, 6.4], look: [0, 1.2, -2.0], fov: 40, push: 0.0025 }],
-      cast: [{ o: YOU, p: [1.4, 3.2], to: { p: [0.4, 0.2], f0: 975, f1: 1050 }, expr: "smile", mode: "stroll" }, { o: "mechanic", p: [-0.8, -2.2], expr: "neutral", facing: 1, pose: "hip,hip" }] },
+      cam: [{ f: 972, frame: { size: "full", at: 975, el: 8 }, fov: 40, push: 0.0025 }],
+      cast: [{ o: YOU, p: [1.1, 2.2], to: { p: [0.4, 0.2], f0: 975, f1: 1050 }, expr: "smile", mode: "stroll" }, { o: "mechanic", p: [-0.8, -2.2], expr: "neutral", facing: 1, pose: "hip,hip" }] },
     { a: 1060, set: "shop", sun: [150, 40], // 13 your book is propping up the workbench leg
       cam: [{ f: 1060, pos: [-0.8, 0.45, -1.4], look: [-1.32, 0.2, -2.93], fov: 34, push: 0.003 }, { f: w("sıkıştırılmış") - 4, dur: 8, pos: [-0.95, 0.38, -1.75], look: [-1.32, 0.12, -2.93], fov: 34, push: 0.003, punch: 0.012, n: 22 }],
       fx: [{ k: "sparkle", f: w("ayağının"), dur: 24, p: [-1.32, 0.2, -2.8], s: 0.3 }] },
@@ -87,9 +87,9 @@ export const michelinSpec: Spec = {
       cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "neutral", [w("para")]: "grin" }, hold: "guide" }],
       fx: [{ k: "coins", f: w("para") - 2, p: [-0.4, 0.8, -0.2], s: 0.5 }] },
     { a: 1307, set: "bistro", sun: [150, 40], // 16 you add the best restaurants
-      cam: [{ f: 1307, pos: [0.4, 2.0, 7.0], look: [0, 1.0, -0.8], fov: 44, push: 0.0025 }],
+      cam: [{ f: 1307, frame: { size: "full", el: 12 }, fov: 42, push: 0.0025 }],
       cast: [{ o: "gent", p: [-0.95, 0], mode: "sit", expr: "smile", facing: 1 }, { o: "lady", p: [0.95, 0], mode: "sit", expr: "smile", facing: -1 },
-        { o: "chef", p: [1.4, -1.6], to: { p: [0.55, -0.9], f0: 1312, f1: 1350 }, expr: "grin", hold: "dish", holdW: 0.42 }, { o: YOU, p: [-1.5, 1.2], expr: "grin", hold: "guide" }] },
+        { o: "chef", p: [-0.3, -2.2], to: { p: [0.1, -1.15], f0: 1312, f1: 1350 }, expr: "grin", hold: "dish", holdW: 0.42 }, { o: YOU, p: [-0.75, -1.5], expr: "grin", hold: "guide" }] },
     { a: 1382, set: "bistro", sun: [150, 40], // 17 then you give them stars
       cam: [{ f: 1382, pos: [0.4, 1.9, 4.4], look: [0, 1.6, -0.6], fov: 40, push: 0.003 }],
       cast: [{ o: "chef", p: [0.4, -1.1], expr: { 0: "neutral", [w("yıldız")]: "laugh" }, pose: { 0: "belly,belly", [w("yıldız")]: "hang,point" } }],
@@ -106,17 +106,16 @@ export const michelinSpec: Spec = {
       cast: [driver("driver", 4, -14, 1595, 1676), driver("gent", 9, -9, 1595, 1676), driver("lady", 14, -4, 1595, 1676)],
       props: [car(4, -14, 1595, 1676, 0, "#2f5f6a"), car(9, -9, 1595, 1676, 0, "#8c2f3c"), car(14, -4, 1595, 1676, 0, "#c9a043")] },
     { a: 1676, set: "bistro", sun: [150, 40], // 21 driving city to city for one dinner
-      cam: [{ f: 1676, pos: [0, 2.3, 7.2], look: [0, 1.2, -1.4], fov: 44, push: 0.0025 }],
+      cam: [{ f: 1676, frame: { size: "ms", el: 10, at: 1750 }, fov: 40, push: 0.0025 }],
       cast: [{ o: "gent", p: [-0.95, 0], mode: "sit", expr: "laugh", facing: 1 }, { o: "lady", p: [0.95, 0], mode: "sit", expr: "smile", facing: -1 },
-        { o: "man", p: [-3.5, -1.6], mode: "sit", expr: "grin", facing: 1 }, { o: "lady2", p: [3.5, -1.6], mode: "sit", expr: "smile", facing: -1 },
-        { o: "driver", p: [1.8, 4.5], to: { p: [1.6, 1.4], f0: 1680, f1: 1750 }, expr: "grin", mode: "stroll" }, { o: "waiter", p: [-1.1, -1.5], expr: "smile", hold: "dish" }] },
+        { o: "driver", p: [1.6, 2.6], to: { p: [1.95, 0.7], f0: 1680, f1: 1750 }, expr: "grin", mode: "stroll" }, { o: "waiter", p: [-0.6, -1.6], expr: "smile", hold: "dish" }] },
     { a: 1780, set: "road", // 22 every kilometre wears the tyres a little more
       cam: [{ f: 1780, pos: [-3, 0.7, 3.4], look: [-3, 0.5, 0.6], fov: 40, push: 0.002 }, { f: 1786, dur: 70, pos: [3, 0.7, 3.4], look: [3, 0.5, 0.6], fov: 40, push: 0.002 }],
       cast: [{ o: "driver", p: [-4.3, 0.5, 0], to: { p: [3.7, 0], f0: 1780, f1: 1870, ease: false }, expr: "grin", shadow: false }],
       fx: [{ k: "puff", f: w("aşınıyor") - 2, p: [0.2, 0.3, 0.9], s: 1.2 }],
       props: [{ k: "oldCar", p: [-4, 0, 0], color: "#8c2f3c", path: [[1780, -4, 0, 0], [1870, 4, 0, 0]] }] },
     { a: 1870, set: "shop", sun: [150, 40], // 23 and they buy the new tyre from you
-      cam: [{ f: 1870, pos: [0.8, 1.85, 7.0], look: [0, 1.3, -1.2], fov: 40, push: 0.0025 }, { f: w("senden") - 4, dur: 10, pos: [0.6, 1.8, 6.2], look: [0, 1.35, -1.4], fov: 40, push: 0.003, punch: 0.009, n: 20 }],
+      cam: [{ f: 1870, frame: { size: "full", el: 8 }, fov: 40, push: 0.0025 }, { f: w("senden") - 4, dur: 10, frame: { size: "ms", el: 6 }, fov: 40, push: 0.003, punch: 0.009, n: 20 }],
       cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "grin", [w("senden")]: "laugh" }, pose: { 0: "hip,thumb", [w("senden")]: "fist,fist" } },
         { o: "driver", p: [-0.75, -0.5], expr: "smile", hold: "tyre", facing: 1 }, { o: "gent", p: [0.75, -0.4], expr: "smile", hold: "tyre", facing: -1 }],
       fx: [{ k: "coins", f: w("senden") - 2, p: [0, 1.0, -0.9], s: 0.6 }] },
@@ -129,9 +128,9 @@ export const michelinSpec: Spec = {
       cast: [{ o: YOU, p: [0, -1.2], expr: { 0: "smile", [w("Michelin'di")]: "laugh" }, hold: { 0: "guide", [w("Michelin'di")]: null }, pose: { 0: null, [w("Michelin'di")]: "up,up" } }],
       fx: [{ k: "sparkle", f: w("Michelin'di"), dur: 30, p: [0, 2.2, -1.1], s: 0.9 }] },
     { a: 2150, set: "bistro", sun: [150, 40], // 26 today the stars still come from a tyre company
-      cam: [{ f: 2150, pos: [0.3, 1.8, 3.8], look: [0, 1.6, -0.8], fov: 40, push: 0.002 }, { f: 2160, dur: 110, pos: [0.6, 2.3, 7.4], look: [0, 1.5, -0.8], fov: 42, push: 0.002 }],
+      cam: [{ f: 2150, frame: { size: "ms" }, fov: 40, push: 0.002 }, { f: 2160, dur: 110, frame: { size: "full", pts: [[-0.62, 2.7, -0.9], [0.62, 2.7, -0.9]], el: 10 }, fov: 42, push: 0.002, ease: "out" }],
       cast: [{ o: "chef", p: [0.6, -1.2], expr: "laugh", wave: true }, { o: YOU, p: [-0.7, -1.2], expr: "grin", hold: "guide" }],
       fx: rosettes(2150, 2.7, -0.9, 0),
-      props: [{ k: "tyres", p: [1.7, 0, -0.6], rows: [0, 1, 2, 3, 4, 5] }] },
+      props: [{ k: "tyres", p: [1.25, 0, -1.6], rows: [0, 1, 2, 3, 4, 5] }] },
   ],
 };

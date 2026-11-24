@@ -102,7 +102,13 @@ export const spec: Spec = { id, total, words: W,
   shots: [{ a: startFrame, set, light?: "day"|"golden", sun?: [az, el], cam: [...], cast?: [...], fx?: [...], props?: [...] }] }
 ```
 All positions are metres relative to the shot's set origin; y up, the open side of interiors is +z (camera side).
-- **cam**: `{ f, pos, look, fov?=40, roll?, push?=0.0025, punch?, n?, dur?=24, cut?, ease?, via? }` (`ease`: smooth |
+- **cam, default = AUTO-FRAMING**: `{ f, frame: { size: wide|full|ms|mcu|cu, on?: [cast idx], pts?: [[x,y,z]] (props /
+  fx to keep in), az?: deg around the subjects (0 = from +z, + = from screen right), el?: deg above (5), side?: -1|1
+  (subjects on the left/right third), at?: frame }, fov?, push?, punch?, dur?, cut?, ease?, via? }`. The engine computes
+  the camera so every subject fits with margins at the END of the hold (it allows for the creeping push-in and the
+  punch). Write `pos`/`look` by hand only for set-pieces with no person (a bench leg, a wheel, a skyline).
+  Groups: 3+ people read better in two rows (back row in the gaps, `el: 12-15` lifts the back heads above the front).
+- **manual cam**: `{ f, pos, look, fov?=40, roll?, push?=0.0025, punch?, n?, dur?=24, cut?, ease?, via? }` (`ease`: smooth |
   out = fast start + soft landing for reveals/whips | back = small overshoot for arrivals; `via: [[x,y,z]...]` curves the
   glide through those points: orbit around a subject, crane over a wall, follow a road) - first key at the shot start;
   later keys glide (`dur`) or `cut`. Every hold creeps in (`push` 0.002-0.0035); `punch` 0.007-0.012 for n=20-30 f on a
@@ -200,6 +206,11 @@ creak flutter applause splash tick coins whistle ratchet rain.
 `python <skill>/scripts/sound.py shorts/<name>/sound.json src/shorts/<name>/words.json shorts/<name>/voice/voice.wav shorts/<name>/audio --total <frames>`
 
 ## 5. Look check -> final
+0. `python <skill>/scripts/render.py check src/shorts/<name>/spec.ts` (~5 s, no pixels, every 2nd frame): lists CUT,
+   OVERLAP (two people stuck together), HIDDEN (a face behind someone), INSIDE (feet inside a desk/table/car/
+   building), CARD (a card over a face) with frame ranges. Fix until only intended ones remain (a car driving out of
+   frame, a card falling past a face for 2 frames). Then `render.py sheet <CompId> <total> --spec <spec.ts>` picks the
+   frames itself (each shot's middle + the first frame of every remaining issue).
 1. `python <skill>/scripts/render.py sheet <CompId> <total> --frames <one mid-frame per shot> --out out/<name>/sheet` -> read the ONE image.
    Check: subject framed (not cut at the edge), captions not over a face or the key prop (`captions` override),
    nothing blocking the lens, expressions readable. Fix by editing numbers in the Spec; re-run the sheet for changed shots only.
