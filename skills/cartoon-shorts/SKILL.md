@@ -121,7 +121,18 @@ creak flutter applause splash tick coins.
    nothing blocking the lens, expressions readable. Fix by editing numbers in the Spec; re-run the sheet for changed shots only.
 2. `python <skill>/scripts/render.py final <CompId> shorts/<name>/audio/mix.wav out/<name>/final.mp4 --qa`
    (1440x2560, ~2-3 min). QA: no black/frozen frames; the only white frame is `flashAt`; loudness -15 LUFS.
-3. Report: path, length, voice, what to listen for (you cannot hear it). Offer one change round.
+3. Write `out/<name>/youtube.txt` in the video's language (no extra tokens: take it from SCRIPT.md):
+   ```
+   BAŞLIK
+   <a curiosity question, max ~60 characters, e.g. "Astronotlar Uzayda Neden Sifon Çekemez?">
+   AÇIKLAMA
+   <2-3 plain sentences: the hook fact + what the video reveals; sensitive topics add "Bu video tarihî bilgilendirme amaçlıdır.">
+   HASHTAG
+   <3 hashtags, the last one #shorts>
+   ETİKETLER
+   <6-10 comma-separated search terms>
+   ```
+4. Report: path, length, voice, what to listen for (you cannot hear it). Offer one change round.
 
 ## Re-voice a finished short (another narrator, same picture)
 Composition captions read `inputProps.words`; the SFX stem is `shorts/<name>/audio/stem_sfx.wav`.
