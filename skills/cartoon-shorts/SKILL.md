@@ -251,7 +251,7 @@ Write `out/<name>/prompts.md` instead of (or besides) the engine render, from th
   5. camera: one motivated move per shot (follow the action, reveal), whip-pan transitions on cues
   6. compare: every 3rd video, side-by-side frames with the reference style notes, score 1-10 per area, pick the next item
 
-## Long-form mode (16:9, 3-15 min) - `longform/` (local install)
+## Long-form mode (16:9, 3-15 min) - `longform/` (in the repo)
 When the user wants a long YouTube video (not a Short): the ReachMora 2D long-form engine (flat ink-on-paper puppets,
 graphics shots: table/documents, counter, chart, map, versus, list, stamps, chapter cards, polaroid ending). Read
 `longform/SKILL.md` + `longform/references/story-format.md` and follow them, with these changes for this channel:
