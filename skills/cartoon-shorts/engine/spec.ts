@@ -32,12 +32,14 @@ export type ActorSpec = {
   swap?: [number, string | Outfit][]; // outfit changes at frames (disguise, costume)
   cape?: number; // a hero cape from this frame
   dust?: boolean; // dust puffs behind while moving
+  /** a card drawing held in the hand on the screen-right side (guide, tyre, paper, sack, dish, tablets, ...); null = empty hand */
+  hold?: Timeline<string | null>; holdW?: number;
 };
 /** effect cards; f/f0 frames, p set-relative; see engine/fxlib.ts for each kind's parameters */
 export type FxSpec = { k: string; f?: number; f0?: number; f1?: number; dur?: number; p: V3; s?: number; w?: number; h?: number;
   col?: string; flat?: boolean; rot?: number; until?: number; path?: [number, number, number, number, number?][]; [key: string]: unknown };
 /** 3D props: bottle / flask / pillbox / bottleShelf; path = [frame, x, y, z, rotZ?] keys (smooth) */
-export type PropSpec = { k: "bottle" | "flask" | "pillbox" | "bottleShelf" | "crate" | "books" | "coins" | "building" | "logs" | "pipe" | "car" | "slab"; p: V3; d?: number; seed?: number; jacks?: boolean; steps?: boolean;
+export type PropSpec = { k: "bottle" | "flask" | "pillbox" | "bottleShelf" | "crate" | "books" | "coins" | "building" | "logs" | "pipe" | "car" | "slab" | "oldCar" | "tyres"; p: V3; d?: number; seed?: number; jacks?: boolean; steps?: boolean;
   /** building / car: [frame, metres] keys, eased between keys (body rises, screws and steps stretch) */
   lift?: [number, number][]; color?: string; h?: number; r?: number;
   liquidTo?: { color: string; f: number; dur: number }; path?: [number, number, number, number, number?][]; spin?: number; len?: number; rows?: number[]; yaw?: number };

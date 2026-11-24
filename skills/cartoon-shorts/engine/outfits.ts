@@ -19,7 +19,12 @@ export const OUTFITS: Record<string, Outfit> = {
   patient2: { jacket: "#ebe6d8", pants: "#ebe6d8", boots: "#ebe6d8", skin: S[1], hat: "hair", hair: "#8a6a3a" },
   patient3: { jacket: "#ebe6d8", pants: "#ebe6d8", boots: "#ebe6d8", skin: S[2], hat: "hair", hair: "#2a201a" },
   patient4: { jacket: "#ebe6d8", pants: "#ebe6d8", boots: "#ebe6d8", skin: S[3], hat: "hair", hair: "#a0a0a0" },
-  // townsfolk
+  chef: { jacket: "#f4f1ea", pants: "#3b3f52", boots: "#2a201a", skin: S[2], hat: "cap", cap: "#ffffff", moustache: "#3a2a1e", buttons: "#c9ccd2", build: "stout" },
+  waiter: { jacket: "#1f1d24", pants: "#1f1d24", boots: "#141218", skin: S[0], hat: "hair", hair: "#2a201a", buttons: "#f4f1ea" },
+  mechanic: { jacket: "#3f5f8a", pants: "#3f5f8a", boots: "#2a201a", skin: S[1], hat: "cap", cap: "#2f4a6a", belt: "#5a3b2a" },
+  driver: { jacket: "#8a6a44", pants: "#5a4a3a", boots: "#3a2a1e", skin: S[3], hat: "cap", cap: "#5a4a3a", moustache: "#5a3b2a" },
+  critic: { jacket: "#4a4f5a", pants: "#2e3140", boots: "#2a201a", skin: S[0], hat: "tophat", moustache: "#8a8a8a", buttons: "#e8c45a", build: "stout" },
+    // townsfolk
   gent: { jacket: "#5a4a6a", pants: "#3b3f52", boots: "#2a201a", skin: S[0], hat: "tophat", moustache: "#5a3b2a" },
   lady: { jacket: "#3f6fb5", pants: "#3b3f52", boots: "#4a3426", skin: S[3], hat: "bonnet", dress: "#c25a7a" },
   lady2: { jacket: "#b5653f", pants: "#3b3f52", boots: "#4a3426", skin: S[2], hat: "bonnet", dress: "#d9a441" },

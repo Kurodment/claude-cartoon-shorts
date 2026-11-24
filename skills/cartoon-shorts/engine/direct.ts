@@ -91,6 +91,7 @@ const live = (c: Ctx, x: FxSpec) => c.f >= (x.f ?? x.f0 ?? -1e9) && c.f < (x.unt
 const STATIC: Record<string, [number, number, (p: Pen) => void]> = {
   tablets: [320, 200, E.fxTablets], paper: [600, 800, E.fxPaper], tophat: [300, 280, E.fxTopHat], moustache: [300, 140, E.fxMoustache],
   sack: [300, 320, E.fxSack], stamp: [300, 420, E.fxStamp],
+  guide: [300, 400, E.fxGuide], tyre: [300, 300, E.fxTyre], rosette: [300, 300, E.fxRosette], dish: [360, 260, E.fxDish],
 };
 export const FX: Record<string, (c: Ctx, x: FxSpec) => void> = {
   cough: (c, x) => once(c, x, 22, (u) => card(c, `cough${u}`, 400, 300, (p) => E.fxCough(p, u), [x.p[0] + (0.25 + 0.2 * u) * (x.s ?? 0.45), x.p[1], x.p[2]], x.s ?? 0.45, (x.s ?? 0.45) * 0.75, { soft: true })),
@@ -151,8 +152,16 @@ const actor = (c: Ctx, cam: CamInfo, a: ActorSpec, i: number) => {
     blink: lidAt(c.t, 100 + i, [...swaps(a.expr), ...(a.swap ?? []).map(([f]) => f / FPS)]), facing: a.facing ?? 0, look: a.look ?? 0, headTilt: tl(a.tilt, c.f, 0),
     wave: wave ? q(0.8 + 0.12 * Math.sin(c.t * 4 + i), 30) : undefined, prop: a.reach ? ["reach", q(keys1(a.reach, c.f), 30)] : null,
   };
+  const held = tl(a.hold, c.f, null as string | null);
+  if (held && !a.reach && !wave) fo.prop = ["reach", 0.55];
+
   const P: V3 = [c.o[0] + x, c.o[1] + y, c.o[2] + z];
   if (a.cape !== undefined && c.f >= a.cape) { const fl = q((c.t * 1.3 + i * 0.3) % 1, 16); card(c, `cape${fl}`, 500, 700, (p) => E.fxCape(p, fl), [x + 0.02, y + 0.98 * (a.scale ?? 1), z - 0.12], 0.62, 0.86); }
+  if (held && STATIC[held]) { // the held card sits at the extended hand, a little toward the lens
+    const [cw, ch, draw] = STATIC[held], s = a.scale ?? 1, hw = a.holdW ?? 0.3;
+    const dx = cam.pos.x - P[0], dz = cam.pos.z - P[2], n = Math.hypot(dx, dz) || 1;
+    card(c, held, cw, ch, draw, [x + cam.right.x * 0.5 * s + (dx / n) * 0.12, y + 0.95 * s, z + cam.right.z * 0.5 * s + (dz / n) * 0.12], hw * s, (hw * s * ch) / cw);
+  }
   if (a.dust && moving) { const k = q((c.t * 3) % 1, 12); card(c, `puff${k}`, 300, 300, (p) => fxPuff(p, k), [x, y + 0.3, z + 1.0], 1.1, 1.1, { soft: true }); }
   c.out.places.push(person(cam, { i: 100 + i, o, okey }, P[0], P[1], P[2], { side: false, mirror: false }, fo, {}, a.scale ?? 1));
   if ((a.shadow ?? true) && y < 0.05 && mode !== "sit") blob(c.out, P[0], P[1], P[2], a.scale ?? 1);

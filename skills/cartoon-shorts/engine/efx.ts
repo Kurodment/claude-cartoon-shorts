@@ -256,3 +256,26 @@ export const fxHeart = (p: Pen, t: number) => {
   for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI * 2, x = 16 * Math.sin(a) ** 3, y = -(13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)); pts.push([150 + x * 7.5 * s, 150 + y * 7.5 * s]); }
   p.poly(pts, "#e2453c", 10);
 };
+
+/** a red guide book (no text: a white tyre ring on the cover), 300 x 400 */
+export const fxGuide = (p: Pen) => {
+  p.poly(rr(40, 30, 260, 370, 18), "#c8323a", 10);
+  p.poly([[40, 50], [62, 30], [62, 370], [40, 370]], "#8f1f28", 0);
+  p.ell(160, 170, 62, 62, "#f4f1ea", 8); p.ell(160, 170, 30, 30, "#c8323a", 6);
+  p.stroke([[90, 300], [230, 300]], 10, "#f4c84a"); p.stroke([[110, 330], [210, 330]], 8, "#f4c84a");
+};
+/** a car tyre seen from the side, 300 x 300 */
+export const fxTyre = (p: Pen) => {
+  p.ell(150, 150, 130, 130, "#2a2830", 10); p.ell(150, 150, 70, 70, "#c9ccd2", 8); p.ell(150, 150, 22, 22, "#8a8f98", 5);
+  for (let k = 0; k < 12; k++) { const a = rad(k * 30); p.stroke([[150 + 100 * Math.cos(a), 150 + 100 * Math.sin(a)], [150 + 124 * Math.cos(a), 150 + 124 * Math.sin(a)]], 8, "#4a4850"); }
+};
+/** a restaurant star: a gold six-petal rosette, 300 x 300 */
+export const fxRosette = (p: Pen) => {
+  for (let k = 0; k < 6; k++) { const a = rad(k * 60 - 90); p.ell(150 + 62 * Math.cos(a), 150 + 62 * Math.sin(a), 52, 52, "#f4c84a", 8); }
+  p.ell(150, 150, 70, 70, "#f4c84a", 0); p.ell(150, 150, 34, 34, "#ffe9a0", 6);
+};
+/** a dish under a silver cloche lid half lifted, 360 x 260 */
+export const fxDish = (p: Pen) => {
+  p.ell(180, 200, 160, 40, "#ffffff", 8); p.ell(180, 192, 90, 28, "#c9763a", 6); p.ell(150, 182, 30, 12, "#6b9a3a", 4);
+  p.poly([[70, 150], [110, 60], [180, 36], [250, 60], [290, 150]], "#d8dde4", 8); p.ell(180, 34, 16, 12, "#b0b6c0", 5);
+};

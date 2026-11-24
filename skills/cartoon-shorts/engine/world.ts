@@ -12,7 +12,7 @@ import { NOINK } from "./ink";
 import { Pool, Actor, Fx } from "./cards";
 import { Spec, V3, FPS, PropSpec } from "./spec";
 import { camAt, stage, shotEnd, smooth, pathAt } from "./direct";
-import { SET_KINDS, flask, bottle, aspirinBox, shelfRowExport, crateProp, booksProp, coinsProp, buildingProp, logsProp, pipeProp, carProp, slabProp } from "./sets";
+import { SET_KINDS, flask, bottle, aspirinBox, shelfRowExport, crateProp, booksProp, coinsProp, buildingProp, logsProp, pipeProp, carProp, slabProp, oldCarProp, tyresProp } from "./sets";
 
 const KENNEY = ["tree_oak", "tree_default", "flower_redA", "flower_yellowA", "lantern", "cart", "stall-green"];
 let kitP: Promise<Kit> | null = null;
@@ -102,6 +102,8 @@ export class World {
       else if (p.k === "pipe") obj = pipeProp(p.len ?? 8, p.r ?? 0.35);
       else if (p.k === "car") obj = carProp(p.color);
       else if (p.k === "slab") obj = slabProp(p.len ?? 10, p.d ?? 3);
+      else if (p.k === "oldCar") obj = oldCarProp(p.color);
+      else if (p.k === "tyres") obj = tyresProp(p.rows?.length ?? 4);
       else { const g = new THREE.Group(), b = new Batch(); for (const y of p.rows ?? [0]) shelfRowExport(b, [0, 0, 0], 0, p.len ?? 2, y, 0, 9, p.color); b.build(g); obj = g; }
       obj.position.set(o[0] + p.p[0], o[1] + p.p[1], o[2] + p.p[2]); obj.rotation.y = p.yaw ?? 0; obj.visible = false; R.add(obj);
       this.props.push({ obj, shot: si, spec: p, liq, c0: liq ? new THREE.Color(p.color ?? "#3a6fb0") : undefined });

@@ -599,15 +599,69 @@ export const slabProp = (len = 10, d = 3) => {
   const g = new THREE.Group(), b = new Batch(); box(b, [0, 0, 0], -len / 2, -2, -d / 2, len / 2, 0, d / 2, lam("mudTex", () => ({ map: mudTex() })), 2); b.build(g); return g;
 };
 
+// ---------------- tyre shop / garage (1900-1930): workbench on the back wall (top 0.95), tyre stacks, a tool board ----------------
+const tyreGeo = () => new THREE.TorusGeometry(0.31, 0.11, 10, 28).rotateX(Math.PI / 2);
+const tyreStack = (b: Batch, o: V3, x: number, z: number, n: number) => { for (let i = 0; i < n; i++) b.add(tyreGeo(), lam("tyreRub", () => ({ color: "#2a2830" })), M(o[0] + x, 0.11 + i * 0.22, o[2] + z)); };
+/** workbench x -1.4..1.4, z -3.55..-2.85, top 0.95; its front-left leg stands on a red book (the guide) at (-1.32, 0, -2.93) */
+export const buildGarage = (kit: Kit, o: V3) => {
+  const g = new THREE.Group(), b = new Batch(), wd = lam("benchWood", () => ({ color: "#8a5a3a" }));
+  room(b, o, "garWall", "#c9b48a", "#5a4a3a", lam("garFloor", () => ({ map: stoneHD() })));
+  b.add(new THREE.PlaneGeometry(1.6, 2.6).translate(o[0] + 3.2, 2.5, o[2] - 3.98), lam("window", () => ({ map: windowTex() })));
+  box(b, o, -1.4, 0.88, -3.55, 1.4, 0.95, -2.85, wd);
+  for (const [x, z, y0] of [[-1.32, -2.93, 0.07], [1.32, -2.93, 0], [-1.32, -3.47, 0], [1.32, -3.47, 0]] as const) box(b, o, x - 0.05, y0, z - 0.05, x + 0.05, 0.88, z + 0.05, wd);
+  box(b, o, -1.46, 0, -3.07, -1.18, 0.07, -2.79, lam("guideRed", () => ({ color: "#c8323a" })));
+  box(b, o, -1.5, 1.2, -3.98, 1.5, 2.6, -3.94, lam("toolBoard", () => ({ color: "#6a4a32" })));
+  for (let i = 0; i < 7; i++) box(b, o, -1.3 + i * 0.4, 1.5 + (i % 2) * 0.35, -3.94, -1.22 + i * 0.4, 2.2 + (i % 3) * 0.1, -3.9, lam("toolSteel", () => ({ color: "#8a8f98" })));
+  for (const [x, z, n] of [[-4.2, -3, 6], [-3.4, -2.6, 4], [-4.6, -1.6, 3], [4.3, -2.4, 5], [3.5, -1.2, 2]] as const) tyreStack(b, o, x, z, n);
+  void kit; b.build(g); return g;
+};
+
+// ---------------- restaurant / bistro (1920s-1950s): round tables with white cloths, a bar on the back wall ----------------
+/** main table at the origin (top 0.76, r 0.55), side tables x ±2.7 z -1.6, bar x -2..2 z -3.6..-3.1 (top 1.05), window x ±3.6 */
+export const buildBistro = (kit: Kit, o: V3) => {
+  const g = new THREE.Group(), b = new Batch(), cloth = lam("tableCloth", () => ({ color: "#f6f2e8" })), wd = wood2(), brass = lam("brass", () => ({ color: "#c9a043" }));
+  room(b, o, "bisWall", "#b8584a", "#4a2a22", lam("bisFloor", () => ({ map: tiles("bisT", "#efe6d2", "#2f2a2e", 8) })));
+  for (const x of [-3.6, 3.6]) b.add(new THREE.PlaneGeometry(1.6, 2.6).translate(o[0] + x, 2.4, o[2] - 3.98), lam("window", () => ({ map: windowTex() })));
+  const table = (x: number, z: number, r: number) => {
+    b.add(cylG(r, r, 0.04, 28), cloth, M(o[0] + x, 0.72, o[2] + z)); b.add(cylG(r + 0.02, r, 0.3, 28), cloth, M(o[0] + x, 0.43, o[2] + z));
+    b.add(cylG(0.05, 0.05, 0.43, 8), wd, M(o[0] + x, 0, o[2] + z));
+    for (const s of [-1, 1]) { box(b, o, x + s * (r + 0.25) - 0.2, 0, z - 0.2, x + s * (r + 0.25) + 0.2, 0.45, z + 0.2, wd); box(b, o, x + s * (r + 0.42) - 0.03, 0.45, z - 0.2, x + s * (r + 0.42) + 0.03, 1.0, z + 0.2, wd); }
+    for (const s of [-1, 1]) { b.add(cylG(0.12, 0.12, 0.015, 20), lam("plate", () => ({ color: "#ffffff" })), M(o[0] + x + s * r * 0.5, 0.76, o[2] + z)); }
+    b.add(cylG(0.025, 0.02, 0.16, 10), lam("wineGlass", () => ({ color: "#d8eef6" })), M(o[0] + x + 0.12, 0.76, o[2] + z - r * 0.4));
+  };
+  table(0, 0, 0.55); table(-2.7, -1.6, 0.5); table(2.7, -1.6, 0.5);
+  box(b, o, -2, 0, -3.6, 2, 1.05, -3.1, wd); box(b, o, -2.05, 1.05, -3.65, 2.05, 1.1, -3.05, brass);
+  for (let i = 0; i < 9; i++) b.add(cylG(0.04, 0.04, 0.3, 10), lam("barBottle" + (i % 3), () => ({ color: ["#3f6a3a", "#8a3a2a", "#c9a043"][i % 3] })), M(o[0] - 1.6 + i * 0.4, 1.6, o[2] - 3.75));
+  box(b, o, -2, 1.55, -3.95, 2, 1.6, -3.6, wd);
+  for (const x of [-5.2, -1.8, 1.8, 5.2]) { b.add(new THREE.SphereGeometry(0.16, 16, 10), lam("lampGlow", () => ({ color: "#ffe9b0", emissive: "#ffcf70", emissiveIntensity: 0.6 })), M(o[0] + x, 3.0, o[2] - 3.85)); }
+  void kit; b.build(g); return g;
+};
+
+// ---------------- props: a 1900 open motor car, a tyre stack ----------------
+/** veteran car (~1900): open seat, spoked wheels, brass lamps; length along x (front +x), driver seat at (-0.3, 0.75, 0) */
+export const oldCarProp = (col = "#2f5f6a") => {
+  const g = new THREE.Group(), b = new Batch(), O: V3 = [0, 0, 0], paint = lam("oldCar" + col, () => ({ color: col })), blk = lam("carBlack", () => ({ color: "#1d1b22" })), brass = lam("brass", () => ({ color: "#c9a043" })), seat = lam("seatRed", () => ({ color: "#8c2f3c" }));
+  box(b, O, -1.2, 0.5, -0.55, 1.2, 0.85, 0.55, paint); box(b, O, 0.55, 0.85, -0.45, 1.2, 1.1, 0.45, paint);
+  box(b, O, -0.75, 0.85, -0.5, -0.05, 1.05, 0.5, seat); box(b, O, -0.8, 0.85, -0.5, -0.65, 1.45, 0.5, seat);
+  b.add(cylG(0.02, 0.02, 0.5, 6), blk, M(0.2, 0.85, 0)); b.add(new THREE.TorusGeometry(0.16, 0.02, 6, 18).rotateZ(Math.PI / 2 - 0.5), blk, M(0.12, 1.35, 0));
+  for (const z of [-0.35, 0.35]) b.add(cylG(0.08, 0.06, 0.14, 12).rotateZ(-Math.PI / 2), brass, M(1.22, 1.0, z));
+  for (const [x, z] of [[-0.85, -0.62], [-0.85, 0.62], [0.85, -0.62], [0.85, 0.62]] as const) {
+    b.add(new THREE.TorusGeometry(0.4, 0.05, 8, 28), blk, M(x, 0.45, z)); b.add(cylG(0.07, 0.07, 0.1, 10).rotateX(Math.PI / 2), brass, M(x, 0.45, z - 0.05));
+    for (let k = 0; k < 6; k++) b.add(new THREE.BoxGeometry(0.02, 0.76, 0.02).rotateZ((k * Math.PI) / 6), lam("spoke", () => ({ color: "#d8c49a" })), M(x, 0.45, z));
+  }
+  b.build(g); g.traverse((m) => { if ((m as THREE.Mesh).isMesh) m.castShadow = m.receiveShadow = true; }); return g;
+};
+export const tyresProp = (n = 4) => { const g = new THREE.Group(), b = new Batch(); tyreStack(b, [0, 0, 0], 0, 0, n); b.build(g); return g; };
+
 /** the set library: kind -> builder (origin = where the engine places this set instance) */
 export const SET_KINDS = {
   lab: buildLab, shop: buildPharm, ward: buildWard, street: buildStreet, brainCastle: buildBrain, capitol: buildCap, bathroom: buildBath,
-  office: buildOffice, kitchen: buildKitchen, harbor: buildHarbor, palace: buildPalace, meadow: buildMeadow, mudTown: buildMudTown,
+  office: buildOffice, kitchen: buildKitchen, harbor: buildHarbor, palace: buildPalace, meadow: buildMeadow, mudTown: buildMudTown, garage: buildGarage, bistro: buildBistro,
 } as const;
 export type SetKind = keyof typeof SET_KINDS;
 /** what each set sounds like (audio.py room tones) and where its open side is */
 export const SET_AMBIENCE: Record<SetKind, string> = { lab: "lab", shop: "shop", ward: "room", street: "street", brainCastle: "outdoor", capitol: "outdoor", bathroom: "room",
-  office: "room", kitchen: "room", harbor: "harbor", palace: "crowd", meadow: "outdoor", mudTown: "street" };
+  office: "room", kitchen: "room", harbor: "harbor", palace: "crowd", meadow: "outdoor", mudTown: "street", garage: "room", bistro: "shop" };
 /** bottle shelf row for props: all one colour when color is given */
 export const shelfRowExport = (b: Batch, o: V3, x0: number, x1: number, y: number, z: number, seed: number, color?: string) => {
   let x = x0, i = 0;

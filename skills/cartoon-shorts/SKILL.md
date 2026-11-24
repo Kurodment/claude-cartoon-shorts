@@ -114,18 +114,20 @@ All positions are metres relative to the shot's set origin; y up, the open side 
   them dots. Put captions low (`0.86`) when the faces sit at 60-70 % height.
 - **cast**: `{ o: outfit, p: [x, z] | [x, y, z], to?: { p, f0, f1, ease? }, mode?: stand|stroll|march|sit, rate?,
   expr?: Expr | {frame: Expr}, wave?: bool | {frame: bool}, reach?: [[frame, 0..1]], facing?: -1|0|1, look?, tilt?,
-  scale?, shadow?, from?, until?, swap?: [[frame, outfit]], cape?: frame, dust? }`. Adults are 1.8 m, face ~1.6 m,
+  scale?, shadow?, from?, until?, swap?: [[frame, outfit]], cape?: frame, dust?, hold?: draw | {frame: draw|null}, holdW? }`
+  (`hold`: a card drawing in the screen-right hand, arm out; e.g. `hold: "guide"`, `holdW: 0.4` for a tyre/dish). Adults are 1.8 m, face ~1.6 m,
   hands ~1.0 m, a waving hand ~1.9 m at x+0.45. Sitting in a bed: `p: [x, 0.45, z]`, `mode: "sit"`, `shadow: false`.
   Expressions: neutral stern grin laugh whistle nervous shock relief relief_open dazed pained smile smile_closed.
   Outfits: chemist professor pharmacist doctor doctor2 nurse official guard soldier thief disguise patient patient2-4
   gent lady lady2 man worker worker2-5 king queen sailor captain farmer teacher police merchant girl grandma kid
-  tourist tourist2 engineer (or a full Outfit object). On a dais/throne: `p: [x, 0.6, z]`, `shadow: false`.
+  tourist tourist2 engineer chef waiter mechanic driver critic (or a full Outfit object; a roleplay "you" = one
+  custom Outfit reused in every shot). On a dais/throne: `p: [x, 0.6, z]`, `shadow: false`.
 - **fx** `{ k, ... }`: `cough {f,p,s}` `burst {f,p,s,col,dur}` `puff {f,p,s}` `sparkle {f,dur?,p,s}` `stars {f?,p,s}`
   `shiver {p,s}` `flame {p,s}` `smoke {p: chimney top, f1?: fade, warm?}` `chains {f,dur,p,w,h}` (over a bottle)
   `halo {f,p,s,breakAt?}` `map {f0,f1,p,w,h}` (shipping arcs) `gate {f0,f1,p,w,h}` (bars closing) `ban {f,p,s,flat}`
   `bulb {f,p,s}` (idea) `clock {f?,dur,p,s}` (time passing) `coins {f,p,s}` `arrow {f,dur,p,w,rot}` `fire {p,s}`
   `rain {p,s}` (cloud) `heart {f,p,s}` `notes {p,s}` (music)
-  `card {draw: tablets|paper|tophat|moustache|sack|stamp, p, w, flat?, rot?, path?: [[f,x,y,z,rot]]}`.
+  `card {draw: tablets|paper|tophat|moustache|sack|stamp|guide|tyre|rosette|dish, p, w, flat?, rot?, path?: [[f,x,y,z,rot]]}`.
   Every kind takes `until` (and `f` = from). Effects face the camera unless `flat`.
 - **props** `{ k: bottle|flask|pillbox|bottleShelf|crate|books|coins, p, color?, h?, r?, liquidTo?: {color,f,dur}, path?, spin?, yaw?, len?, rows? }`.
   Bottles have a blank paper label (no text); flasks show their liquid through the glass.
@@ -165,6 +167,14 @@ All positions are metres relative to the shot's set origin; y up, the open side 
 - **mudTown** (1850s town, Wild West, floods): muddy street with puddles (open x ±6), plank sidewalks x ±6.2..8.6,
   house rows at x ±13.5 from z -36 to 60, lanterns, a cart (4.2, 22), a lake for z < -60 (water y -0.4). Put building
   props in the street at z -6 (small) / -12 (tall); establishing: camera (0, 10, 44) -> (0, 2, -10).
+- **garage** (tyre shop / workshop 1900-1930): room 12.8 m wide, workbench x ±1.4 z -3.55..-2.85 top 0.95 with its
+  front-left leg on a red book (CU: camera (-0.8, 0.45, -1.4) -> (-1.32, 0.2, -2.93)), tool board on the back wall,
+  tyre stacks at x ±3.4..4.6. Person in front of the bench at (0, -1.0); camera (0.8, 1.7, 5.4) -> (0, 1.3, -1.5).
+- **bistro** (restaurant 1920s-50s): main round table at the origin (top 0.76, chairs at x ±0.95: diners `mode: "sit"`),
+  side tables (±2.7, -1.6), a bar with bottles on the back wall z -3.6..-3.1, wall lamps, two windows, chequered floor.
+  Wide: camera (0.4, 2.0, 7.0) -> (0, 1.0, -0.8), fov 44. Stars over the table: three `rosette` cards at y 2.5, x ±0.62.
+- props `oldCar {color, yaw, path}` (1900 open car, spoked wheels, length along x; `yaw: Math.PI/2` drives toward -z;
+  a driver card at `[x, 0.5, z + 0.3]` with the same `to`), `tyres {rows: n}` (a stack of n tyres).
 New kinds: add a builder to `engine/sets.ts` + `SET_KINDS` (only when no set fits; tell the user it costs more).
 
 ## 4. Sound (`shorts/<name>/sound.json`) - no music unless the user wants it
@@ -216,6 +226,19 @@ Write `out/<name>/prompts.md` instead of (or besides) the engine render, from th
    and style reference." + style sheet + the sentences of the characters in the shot + setting with camera position and
    angle + the literal action of that sentence (only what the camera sees, directions: towards/away, left/right; a number
    in the narration appears written on a prop) + "Sound: ambient sound effects only. No dialogue, no narration, no music."
+
+## Asset growth + quality ladder (every video)
+- **Every new short adds 2-4 reusable assets** the story needs (a set, a prop, an fx card, an outfit, a sound cue),
+  written generically (origin-relative, parameters, no story text) into `engine/` + listed in this file, so the library
+  grows video by video. Tell the user which assets were added.
+- **Quality ladder** toward the reference look (premium cartoon shorts): each video also fixes ONE item from the top of
+  this list and moves it to "done" in `QUALITY.md` at the repo root:
+  1. acting: hand-held props (a book, a coin, a tyre in the hand), pointing, sitting at a table, running poses
+  2. talking: mouth flaps on the speaking character while their line plays
+  3. sets: denser dressing (clutter, signs without text, background people), a second light colour per set
+  4. sound: real ElevenLabs sound effects for key impacts (sound-effects skill; costs credits, ask once) + room tones
+  5. camera: one motivated move per shot (follow the action, reveal), whip-pan transitions on cues
+  6. compare: every 3rd video, side-by-side frames with the reference style notes, score 1-10 per area, pick the next item
 
 ## Re-voice a finished short (another narrator, same picture)
 Composition captions read `inputProps.words`; the SFX stem is `shorts/<name>/audio/stem_sfx.wav`.
