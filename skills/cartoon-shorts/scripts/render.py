@@ -20,7 +20,9 @@ def sheet(a):
     frames = [int(x) for x in a.frames.split(",")] if a.frames else [round((i + 0.5) * a.total / a.n) for i in range(a.n)]
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     e = env(); e["COMP"] = a.comp
-    subprocess.run(["node", os.path.join(HERE, "stills.mjs"), a.out + "_", ",".join(map(str, frames)), "0.5"], check=True, env=e)
+    # node resolves packages from the script's folder: run a copy inside the project
+    os.makedirs("scripts", exist_ok=True); shutil.copy(os.path.join(HERE, "stills.mjs"), "scripts/shorts-stills.mjs")
+    subprocess.run(["node", "scripts/shorts-stills.mjs", a.out + "_", ",".join(map(str, frames)), "0.5"], check=True, env=e)
     from PIL import Image
     cols = 5 if len(frames) > 8 else 4
     rows = (len(frames) + cols - 1) // cols
