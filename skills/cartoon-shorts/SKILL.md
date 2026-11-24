@@ -1,6 +1,6 @@
 ---
 name: cartoon-shorts
-description: Make a ~60-75 s vertical cartoon story short from an idea at the lowest token cost - flat bean-head cartoon characters in a colourful inked 3D world (three.js inside Remotion), narration (Edge free / ElevenLabs / any TTS), word-by-word captions, synthesized SFX, 2K vertical export - by writing ONE Spec file for a ready engine; also re-voices a finished short with another narrator. Use when the user gives a video idea or topic for a short / reels / TikTok, asks for an animated / cartoon / çizgi film tarzı kısa video, "bu konuda video yap", wants a different voice for a finished short, or names this skill.
+description: Make a ~60-75 s vertical cartoon story short from an idea at the lowest token cost - flat bean-head cartoon characters in a colourful inked 3D world (three.js inside Remotion), narration (ElevenLabs by default, Edge free fallback, any TTS), word-by-word captions, synthesized SFX, 2K vertical export - by writing ONE Spec file for a ready engine; also re-voices a finished short with another narrator. Use when the user gives a video idea or topic for a short / reels / TikTok, asks for an animated / cartoon / çizgi film tarzı kısa video, "bu konuda video yap", wants a different voice for a finished short, or names this skill.
 ---
 
 # Cartoon shorts (engine + Spec)
@@ -54,11 +54,14 @@ Count the words, then show the script + the true/invented line + facts with sour
 "tamam", "GO") do everything else without asking.
 
 ## 2. Voice -> words + frame table
-- Free: `python <skill>/scripts/voice.py edge voice.txt shorts/<name>/voice [--voice tr-TR-AhmetNeural|tr-TR-EmelNeural] [--rate +10%]`
-- ElevenLabs (MCP connected): `creative_list_voices` (languages, gender, use_cases) -> pick one yourself and say which ->
-  `creative_generate_speech` with the joined script, `estimate_only` first (tell the cost), then `generations_count: 1`
-  (never retry: it charges again) -> poll `creative_get_flow_run_status` -> `content_url` ->
-  `python <skill>/scripts/voice.py take <url> voice.txt shorts/<name>/voice`. Free plan = no commercial licence: say so.
+- **Default: ElevenLabs** (MCP connected). Reuse the voice already chosen for the channel (Turkish default: "Can Seçkin",
+  `rSuyucEH95GpZEfLV0AM`, model `eleven_v4`); otherwise `creative_list_voices` (languages, gender, use_cases) -> pick one
+  yourself and say which. `creative_generate_speech` with the joined script, `estimate_only` first (say the credit cost),
+  then `generations_count: 1` (never retry: it charges again) -> poll `creative_get_flow_run_status` -> `content_url` ->
+  `python <skill>/scripts/voice.py take <url> voice.txt shorts/<name>/voice`. Check `account_get_usage` when credits may
+  be low. Free plan = no commercial licence: say so once.
+- Fallback only when ElevenLabs is unavailable or out of credits (say why):
+  `python <skill>/scripts/voice.py edge voice.txt shorts/<name>/voice [--voice tr-TR-AhmetNeural] [--rate +10%]`
 - Never clone a third party's voice. The user's own voice (their recording) is fine.
 - Output: `voice.wav`, `words.json` (spelled-out numbers merged to digits for captions: refer to them as `w("1897")`),
   and a table `L01 Bir@6 zamanlar@19 ...` (word@frame, 30 fps). Copy `words.json` to `src/shorts/<name>/`, then
