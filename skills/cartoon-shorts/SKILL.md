@@ -21,14 +21,37 @@ needed is in this file. Talk to the user in their language (Turkish shorts: Turk
 Set `REMOTION_TMP` to a big drive (every bundle copies `public/`). Run every command from the project root.
 
 ## 1. Idea -> facts -> script (one message to the user for approval)
-- One surprising TRUE story with a physical cause -> effect that can be shown, plus an everyday analogy.
-- Formula (~150-170 words, 60-72 s): **hook** (the absurd fact, no intro) -> **setting** (year, place) -> **escalation**
-  in 3-4 beats -> **snap** -> **deadpan pair** ("Neyse ki X... / Ne yazık ki X...", same framing twice) -> **"Çünkü"**
-  + the analogy -> **consequence** -> **callback** ending. Spoken everyday language, 6-14 words per sentence.
-- `voice.txt`: one sentence per line. **No commas inside a sentence** (TTS reads a comma as a sentence end: the pitch
-  drops and the sentence sounds broken); split into two sentences if a pause is needed. Write numbers as words.
+**Length** (ask together with the script only if the user did not say; Turkish narration runs ~2.3 words/s):
+30 s ≈ 70 words / 7-8 shots, 45 s ≈ 105 words / 10-12 shots, 60-72 s ≈ 145-165 words / 14-20 shots.
+**No topic?** Give 10 ideas in one message, ranked by story type, best first:
+A) hidden-physics underdog (someone does something that looks stupid, everyone mocks them, a real principle proves them
+right), B) a weird real experiment or institution, C) a clever scheme or loophole with a twist. Never a "what if"
+fantasy or a plain explainer without a main character. Per idea: a 4-8 word title ("[Normal şey] Neden [Aslında Tuhaf]"
+/ "[İmkânsız Şeyi Yapan] [Nesne]"), a one-line hook, the true fact underneath. Then the user picks a number.
+**Before the script**, one line: what is true and what is invented (unnamed doubters and rivals may be invented; facts
+and real people's words may not - never put an invented quote in a real person's mouth).
+**Beats**, in order:
+- **HOOK** (5-18 words, a statement): a person named by their role doing the strange action, with one specific number
+  ("Genç bir mühendis yepyeni bir demiryolunu her on iki metrede bir kesti."). Never open with Nasıl / Neden / Ne /
+  Hiç / Düşünün or a question.
+- **SETUP**: present tense from here on; who is up against whom, where, and what is at stake.
+- **DOUBT**: the boss or a rival laughs - one short mocking line (<= 14 words); the hero does not explain.
+- **ESCALATE**: 2-3 steps over time; the rival seems to win; one small visible clue that the hero is right.
+- **TURN**: the big threat arrives. Optional **deadpan pair** ("Neyse ki X... / Ne yazık ki X...", same framing twice).
+- **REVEAL**: the narrator says "Çünkü" (or "Meğer") + the real mechanism in one plain true sentence, plus an everyday
+  analogy if it helps. The hero never explains.
+- **BUTTON**: the last sentence (<= 25 words) is the payoff image: the doubters get exactly what they laughed at.
+**Sentence rules** (each sentence = one shot, so each must name something the viewer can SEE: a person, an object, a
+place or a number on a prop; a viewer hearing it once always knows where we are and who is who):
+- 6-14 words (one 3-6 word punch line somewhere); one sentence per line in `voice.txt`.
+- **No commas inside a sentence** (TTS reads a comma as a sentence end); split into two sentences instead.
+- Links ("Bu yüzden" result, "Ama" reversal, "Sonra" next step) only where real; many sentences without one.
+- At least 2 jokes, said by the doubters; at least 2 specific odd numbers whose meaning the viewer already knows
+  (on screen: a prop, a `coins` / `clock` fx, a count of characters). Prefer "o zamanlar" to years unless the year is the hook.
+- Numbers as words. No intro, channel name, moral, question to the viewer or call to action.
 - Sensitive topics (drugs, violence): history/explanation only, never show use; no text anywhere in the picture.
-- Show the script + facts once; on approval ("yardır", "tamam") do everything else without asking.
+Count the words, then show the script + the true/invented line + facts with sources once; on approval ("yardır",
+"tamam", "GO") do everything else without asking.
 
 ## 2. Voice -> words + frame table
 - Free: `python <skill>/scripts/voice.py edge voice.txt shorts/<name>/voice [--voice tr-TR-AhmetNeural|tr-TR-EmelNeural] [--rate +10%]`
@@ -127,7 +150,9 @@ creak flutter applause splash tick coins.
 4. Write `out/<name>/youtube.txt` in the video's language (no extra tokens: take it from SCRIPT.md):
    ```
    BAŞLIK
-   <a curiosity question, max ~60 characters, e.g. "Astronotlar Uzayda Neden Sifon Çekemez?">
+   <the best title, max ~60 characters, e.g. "Astronotlar Uzayda Neden Sifon Çekemez?">
+   BAŞLIK SEÇENEKLERİ
+   <4 more, 4-8 words, patterns "[Normal şey] Neden [Aslında Tuhaf]" / "[İmkânsız Şeyi Yapan] [Nesne]", no emoji>
    AÇIKLAMA
    <2-3 plain sentences: the hook fact + what the video reveals; sensitive topics add "Bu video tarihî bilgilendirme amaçlıdır.">
    HASHTAG
@@ -136,6 +161,21 @@ creak flutter applause splash tick coins.
    <6-10 comma-separated search terms>
    ```
 5. Report: video, cover and text paths, length, voice, what to listen for (you cannot hear it). Offer one change round.
+
+## Optional: prompts for AI video tools (only when the user asks: Google Flow / Veo / Kling / Nano Banana)
+Write `out/<name>/prompts.md` instead of (or besides) the engine render, from the approved `voice.txt`:
+1. **Style sheet** (once): default "Flat 2D cartoon characters with simple round heads, dot eyes, thick clean black outlines
+   and flat colours, animated on a detailed stylised 3D-rendered background with soft daylight, warm saturated colours,
+   shallow depth of field. Vertical 9:16. Smooth, expressive cartoon acting. No captions, no subtitles, no logos, no
+   watermarks; the only writing allowed is a number on a prop." If the user attaches screenshots of a look, describe that
+   look in general terms (outlines, faces, colours, background, light) with OUR own characters, never theirs.
+2. **Characters**: one fixed sentence each (body, clothes, one identifying colour), reused word for word in every prompt.
+3. **Reference image prompt**: style sheet + character sentences + all main characters side by side, full body, facing
+   the camera, in the main setting, each with their key prop, no text. Make this image first and attach it to every shot.
+4. **One prompt per sentence** (4-6 s each, own code block, "SHOT n (5 s)"): "Use the attached images as the character
+   and style reference." + style sheet + the sentences of the characters in the shot + setting with camera position and
+   angle + the literal action of that sentence (only what the camera sees, directions: towards/away, left/right; a number
+   in the narration appears written on a prop) + "Sound: ambient sound effects only. No dialogue, no narration, no music."
 
 ## Re-voice a finished short (another narrator, same picture)
 Composition captions read `inputProps.words`; the SFX stem is `shorts/<name>/audio/stem_sfx.wav`.
